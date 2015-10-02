@@ -5,8 +5,10 @@
         $elements = null,
         elementsArr,
         scrollTop,
-        windowHeight,
-        ticking = false,
+        windowHeight = $window.height(),
+        windowWidth = $window.width(),
+        scrollTicking = false,
+        resizeTicking = false,
         isTouchDevice = window.Modernizr && typeof(Modernizr.touchevents) != 'undefined' ? Modernizr.touchevents : testTouchEvents();
 
     function testTouchEvents() {
@@ -28,6 +30,7 @@
                     updateParallaxData.call(this, options)
                     if ($elements === null) {
                         $elements = this;
+                        window.onresize = onResize;
                         window.onscroll = onScroll;
                     }
                     else {
@@ -40,69 +43,73 @@
     };
 
     function updateParallaxData(options) {
+        options || (options = {});
         this.each(function() {
             var $this = $(this),
-                parallax = {};
-            if ($this.data('parallax-x') || $this.data('parallax-y') || $this.data('parallax-z')) {
-                parallax = $.extend(parallax, {
-                    translateX: getTranslateFunc.call(this, options.x || $this.data('parallax-x'), function() {
-                        return getTranslateXYZ.call(this, 12, 4);
-                    }),
-                    translateY: getTranslateFunc.call(this, options.y || $this.data('parallax-y'), function() {
-                        return getTranslateXYZ.call(this, 13, 5);
-                    }),
-                    translateZ: getTranslateFunc.call(this, options.z || $this.data('parallax-z'), function() {
-                        return getTranslateXYZ.call(this, 14);
-                    })
-                });
+                parallax = {},
+                translate = $this.data("parallax-translate") || {};
+            if (!translate.x && !translate.y && !translate.z) {
+                translate = {y: translate};
             }
-            if ($this.data('parallax-scale')) {
-                // todo: implement
+            options.translate = $.extend(translate, options.translate || {});
+            parallax.translateX = getTranslateFunc.call(this, options.translate.x, function() {
+                return getMatrix3d.call(this, 12, 4);
+            });
+            parallax.translateY = getTranslateFunc.call(this, options.translate.y, function() {
+                return getMatrix3d.call(this, 13, 5);
+            });
+            parallax.translateZ = getTranslateFunc.call(this, options.translate.z, function() {
+                return getMatrix3d.call(this, 14);
+            });
+            if (options.scale || typeof $this.data('parallax-scale') != "undefined") {
+                parallax.scale = getParallaxFunc.call(this, options.scale || $this.data('parallax-scale'), 1);
             }
-            if ($this.data('parallax-rotate')) {
-                // todo: implement
+            if (options.rotate || typeof $this.data('parallax-rotate') != "undefined") {
+                parallax.rotate = getParallaxFunc.call(this, options.rotate || $this.data('parallax-rotate'));
             }
-            if ($this.data('parallax-opacity')) {
-                // todo: implement
+            if (options.opacity || typeof $this.data('parallax-opacity') != "undefined") {
+                parallax.opacity = getParallaxFunc.call(this, options.opacity || $this.data('parallax-opacity'), 1);
             }
             $this.data("parallax", parallax);
         });
     }
 
-    function onScroll() {
-        requestTick();
+    function onResize() {
+        if (!resizeTicking) {
+            window.requestAnimationFrame(function() {
+                windowHeight = $window.height();
+                windowWidth = $window.width();
+            });
+            resizeTicking = true;
+        }
     }
 
-    function requestTick() {
-        if (!ticking) {
+    function onScroll() {
+        if (!scrollTicking) {
             window.requestAnimationFrame(animateElements);
-            ticking = true;
+            scrollTicking = true;
         }
     }
 
     function animateElements() {
         scrollTop = $window.scrollTop();
-        windowHeight = $window.height();
 
         for (var i=0; i<elementsArr.length; i++) {
             animateElement.call(elementsArr[i]);
         }
 
-        ticking = false;
+        scrollTicking = false;
     }
 
     function animateElement() {
         var $this = $(this),
             parallax = $this.data("parallax"),
-            transform = '';
-        if (parallax.translateX) {
-            transform += ' translate3d(' + parallax.translateX.call(this) + 'px,' + parallax.translateY.call(this) + 'px,' + parallax.translateZ.call(this) + 'px)';
-        }
+            transform = 'translate3d(' + parallax.translateX.call(this) + 'px,' + parallax.translateY.call(this) + 'px,' + parallax.translateZ.call(this) + 'px)';
         if (parallax.scale) {
             transform += ' scale(' + parallax.scale.call(this) + ')';
         }
         if (parallax.rotate) {
-            transform += ' rotate(' + parallax.rotate.call(this) + ')'
+            transform += ' rotate(' + parallax.rotate.call(this) + 'deg)'
         }
         this.style['-webkit-transform'] = transform;
         this.style['-moz-transform'] = transform;
@@ -115,49 +122,83 @@
     }
 
     function getTranslateFunc(options, valueFunc) {
+        if (typeof options == "number" || typeof options == "string") {
+            if (options === "dynamic") {
+                return function () {
+                    valueFunc.call(this);
+                };
+            }
+            options = {
+                to: options
+            };
+        }
+        if (typeof options == "undefined" || typeof options.to == "undefined") {
+            var value = valueFunc.call(this);
+            return function() {
+                return value;
+            };
+        }
+        var start = options.start || $(this).offset().top,
+            duration = options.duration || "100%",
+            from = options.from || 0,
+            to = options.to;
+        return function() {
+            var durationPx = convertToPx(duration),
+                fromPx = convertToPx(from),
+                toPx = convertToPx(to);
+            if (scrollTop >= start && scrollTop <= (start + durationPx)) {
+                return easeInOutQuad(scrollTop-start, fromPx, (toPx - fromPx), durationPx).toFixed(2);
+            }
+        };
+    }
+
+    function getParallaxFunc(options, defaultFrom) {
         switch (typeof(options)) {
             case "number":
                 options = {
-                    speed: options
+                    to: options
                 };
-            case "object":
-                var start = options.start || 0,
-                    end = options.end || Number.MAX_SAFE_INTEGER,
-                    speed = options.speed || 0.5;
-                return function() {
-                    if (scrollTop >= start && scrollTop <= end) {
-                        return ((scrollTop - start) * speed).toFixed(2);
-                    }
-                };
-            case "string":
-                if (options == "dynamic") {
-                    return function () {
-                        valueFunc.call(this);
-                    };
-                }
-            case "undefined":
-                var value = valueFunc.call(this);
-                return function() {
-                    return value;
-                };
+                break;
         }
+        var start = options.start || $(this).offset().top,
+            duration = options.duration || "100%",
+            from = options.from || (defaultFrom || 0),
+            to = options.to;
+        return function() {
+            var durationPx = convertToPx(duration);
+            if (scrollTop >= start && scrollTop <= (start + durationPx)) {
+                return easeInOutQuad(scrollTop-start, from, (to - from), durationPx);
+            }
+        };
     }
 
-    function getTranslateXYZ(mat3dIdx, matIdx) {
+    function getMatrix3d(mat3dIdx, matIdx) {
         if (!window.getComputedStyle) return;
         var style = getComputedStyle(this),
-            transform = style.transform || style.webkitTransform || style.mozTransform;
-        var mat = transform.match(/^matrix3d\((.+)\)$/);
-        if(mat) return parseFloat(mat[1].split(', ')[mat3dIdx]);
+            transform = style.transform || style.webkitTransform || style.mozTransform,
+            mat3d = transform.match(/^matrix3d\((.+)\)$/);
+        if(mat3d) return parseFloat(mat3d[1].split(', ')[mat3dIdx]);
         else if (arguments.length < 3) return 0;
-        mat = transform.match(/^matrix\((.+)\)$/);
+        var mat = transform.match(/^matrix\((.+)\)$/);
         return mat ? parseFloat(mat[1].split(', ')[matIdx]) : 0;
+    }
+
+    function convertToPx(value, axis) {
+        if(typeof value === "string" && value.match(/%/g)) {
+            if(axis === 'x') value = (parseFloat(value) / 100) * windowWidth;
+            else value = (parseFloat(value) / 100) * windowHeight;
+        }
+        return value;
+    }
+
+    function easeInOutQuad(t, b, c, d) {
+        return -c/2 * (Math.cos(Math.PI*t/d) - 1) + b;
     }
 
     if (!isTouchDevice) {
         $(function() {
 
-            $('[data-parallax-x],[data-parallax-y],[data-parallax-z]').parallax();
+            $('[data-parallax-translate],[data-parallax-scale],[data-parallax-rotate],[data-parallax-opacity]').parallax();
 
         });
     }
