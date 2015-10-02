@@ -24,6 +24,8 @@
                 break;
             default:
                 if (!isTouchDevice) {
+                    var options = method || {};
+                    updateParallaxData.call(this, options)
                     if ($elements === null) {
                         $elements = this;
                         window.onscroll = onScroll;
@@ -31,11 +33,41 @@
                     else {
                         $elements.add(this);
                     }
-                    updateElementsArray();
+                    elementsArr = $elements.toArray();
                 }
         }
         return this;
     };
+
+    function updateParallaxData(options) {
+        this.each(function() {
+            var $this = $(this),
+                parallax = {};
+            if ($this.data('parallax-x') || $this.data('parallax-y') || $this.data('parallax-z')) {
+                parallax = $.extend(parallax, {
+                    translateX: getTranslateFunc.call(this, options.x || $this.data('parallax-x'), function() {
+                        return getTranslateXYZ.call(this, 12, 4);
+                    }),
+                    translateY: getTranslateFunc.call(this, options.y || $this.data('parallax-y'), function() {
+                        return getTranslateXYZ.call(this, 13, 5);
+                    }),
+                    translateZ: getTranslateFunc.call(this, options.z || $this.data('parallax-z'), function() {
+                        return getTranslateXYZ.call(this, 14);
+                    })
+                });
+            }
+            if ($this.data('parallax-scale')) {
+                // todo: implement
+            }
+            if ($this.data('parallax-rotate')) {
+                // todo: implement
+            }
+            if ($this.data('parallax-opacity')) {
+                // todo: implement
+            }
+            $this.data("parallax", parallax);
+        });
+    }
 
     function onScroll() {
         requestTick();
@@ -53,16 +85,18 @@
         windowHeight = $window.height();
 
         for (var i=0; i<elementsArr.length; i++) {
-            animateElement.call(elementsArr[i].el, elementsArr[i].parallax);
+            animateElement.call(elementsArr[i]);
         }
 
         ticking = false;
     }
 
-    function animateElement(parallax){
-        var transform = '';
+    function animateElement() {
+        var $this = $(this),
+            parallax = $this.data("parallax"),
+            transform = '';
         if (parallax.translateX) {
-            transform += ' translate3d(' + parallax.translateX.call(this) + 'px,' + parallax.translateY.call(this)  + 'px,' + parallax.translateZ.call(this) + 'px)';
+            transform += ' translate3d(' + parallax.translateX.call(this) + 'px,' + parallax.translateY.call(this) + 'px,' + parallax.translateZ.call(this) + 'px)';
         }
         if (parallax.scale) {
             transform += ' scale(' + parallax.scale.call(this) + ')';
@@ -77,33 +111,6 @@
         this.style.transform = transform;
         if (parallax.opacity) {
             this.style.opacity = parallax.opacity.call(this);
-        }
-    }
-
-    function updateElementsArray() {
-        var arr = $elements.toArray();
-        elementsArr = [];
-        for (var i=0; i<arr.length; i++) {
-            var el = arr[i],
-                $el = $(el),
-                parallax = {};
-            if ($el.data('parallax-x') || $el.data('parallax-y') || $el.data('parallax-z')) {
-                parallax = $.extend(parallax, {
-                    translateX: getTranslateFunc.call(el, $el.data('parallax-x'), function() {
-                        return getTranslateXYZ.call(this, 12, 4);
-                    }),
-                    translateY: getTranslateFunc.call(el, $el.data('parallax-y'), function() {
-                        return getTranslateXYZ.call(this, 13, 5);
-                    }),
-                    translateZ: getTranslateFunc.call(el, $el.data('parallax-z'), function() {
-                        return getTranslateXYZ.call(this, 14);
-                    })
-                });
-            }
-            elementsArr.push({
-                el: arr[i],
-                parallax: parallax
-            });
         }
     }
 
