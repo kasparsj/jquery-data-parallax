@@ -6,7 +6,7 @@
         scrollTop,
         windowHeight,
         ticking = false,
-        isTouchDevice = typeof(Modernizr.touchevents) != 'undefined' ? Modernizr.touchevents : testTouchEvents();
+        isTouchDevice = window.Modernizr && typeof(Modernizr.touchevents) != 'undefined' ? Modernizr.touchevents : testTouchEvents();
 
     function testTouchEvents() {
         return 'ontouchstart' in window // works on most browsers
