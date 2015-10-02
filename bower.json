@@ -8,6 +8,7 @@
   "description": "jQuery plugin for easy parallax effect",
   "main": "jquery.parallax.js",
   "dependencies": {
+    "jquery": "*",
     "requestAnimationFrame.js": "latest"
   },
   "keywords": [
