@@ -72,17 +72,18 @@
         var arr = $elements.toArray();
         elementsArr = [];
         for (var i=0; i<arr.length; i++) {
-            var $el = $(arr[i]);
+            var el = arr[i],
+                $el = $(el);
             elementsArr.push({
                 el: arr[i],
                 parallax: {
-                    translateX: getTranslateFunc.call($el, $el.data('parallax-x'), function() {
+                    translateX: getTranslateFunc.call(el, $el.data('parallax-x'), function() {
                         return getTranslateXYZ.call(this, 12, 4);
                     }),
-                    translateY: getTranslateFunc.call($el, $el.data('parallax-y'), function() {
+                    translateY: getTranslateFunc.call(el, $el.data('parallax-y'), function() {
                         return getTranslateXYZ.call(this, 13, 5);
                     }),
-                    translateZ: getTranslateFunc.call($el, $el.data('parallax-z'), function() {
+                    translateZ: getTranslateFunc.call(el, $el.data('parallax-z'), function() {
                         return getTranslateXYZ.call(this, 14);
                     })
                 }
@@ -133,7 +134,7 @@
     if (!isTouchDevice) {
         $(function() {
 
-            $('[data-parallax-x],[data-parallax-y][data-parallax-z]').parallax();
+            $('[data-parallax-x],[data-parallax-y],[data-parallax-z]').parallax();
 
         });
     }
