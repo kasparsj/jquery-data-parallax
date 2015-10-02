@@ -34,7 +34,7 @@ or javascript:
 
 ```javascript
 $("#selector").parallax({
-    translate: 70%,
+    translate: "70%",
     scale: 2,
     rotate: 180,
     opacity: 0
