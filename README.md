@@ -1,10 +1,10 @@
-# jquery-parallax
+# jquery-easy-parallax
 jQuery plugin for easy parallax effect
 
 ## Availability
 
 ```bash
-bower install jquery-parallax
+bower install jquery-easy-parallax
 ```
 
 ## Installation
