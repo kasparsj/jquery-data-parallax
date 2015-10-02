@@ -24,6 +24,7 @@
                 break;
             default:
                 if (!isTouchDevice) {
+                    updateParallaxOptions.call(this, method || {})
                     if ($elements === null) {
                         $elements = this;
                         window.onscroll = onScroll;
@@ -31,11 +32,28 @@
                     else {
                         $elements.add(this);
                     }
-                    updateElementsArray();
+                    elementsArr = $elements.toArray();
                 }
         }
         return this;
     };
+
+    function updateParallaxOptions(options) {
+        this.each(function() {
+            var $this = $(this);
+            $this.data("parallax-options", {
+                translateX: getTranslateFunc.call(this, options.x || $this.data('parallax-x'), function() {
+                    return getTranslateXYZ.call(this, 12, 4);
+                }),
+                translateY: getTranslateFunc.call(this, options.y || $this.data('parallax-y'), function() {
+                    return getTranslateXYZ.call(this, 13, 5);
+                }),
+                translateZ: getTranslateFunc.call(this, options.z || $this.data('parallax-z'), function() {
+                    return getTranslateXYZ.call(this, 14);
+                })
+            });
+        });
+    }
 
     function onScroll() {
         requestTick();
@@ -53,42 +71,21 @@
         windowHeight = $window.height();
 
         for (var i=0; i<elementsArr.length; i++) {
-            animateElement.call(elementsArr[i].el, elementsArr[i].parallax);
+            animateElement.call(elementsArr[i]);
         }
 
         ticking = false;
     }
 
-    function animateElement(parallax){
-        var transform = 'translate3d(' + parallax.translateX.call(this) + 'px,' + parallax.translateY.call(this)  + 'px,' + parallax.translateZ.call(this) + 'px)';
+    function animateElement() {
+        var $this = $(this),
+            options = $this.data("parallax-options");
+        var transform = 'translate3d(' + options.translateX.call(this) + 'px,' + options.translateY.call(this)  + 'px,' + options.translateZ.call(this) + 'px)';
         this.style['-webkit-transform'] = transform;
         this.style['-moz-transform'] = transform;
         this.style['-ms-transform'] = transform;
         this.style['-o-transform'] = transform;
         this.style.transform = transform;
-    }
-
-    function updateElementsArray() {
-        var arr = $elements.toArray();
-        elementsArr = [];
-        for (var i=0; i<arr.length; i++) {
-            var el = arr[i],
-                $el = $(el);
-            elementsArr.push({
-                el: arr[i],
-                parallax: {
-                    translateX: getTranslateFunc.call(el, $el.data('parallax-x'), function() {
-                        return getTranslateXYZ.call(this, 12, 4);
-                    }),
-                    translateY: getTranslateFunc.call(el, $el.data('parallax-y'), function() {
-                        return getTranslateXYZ.call(this, 13, 5);
-                    }),
-                    translateZ: getTranslateFunc.call(el, $el.data('parallax-z'), function() {
-                        return getTranslateXYZ.call(this, 14);
-                    })
-                }
-            });
-        }
     }
 
     function getTranslateFunc(options, valueFunc) {
