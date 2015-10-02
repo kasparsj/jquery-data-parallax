@@ -22,11 +22,11 @@
     "test",
     "tests"
   ],
-  "_release": "3a7c964d08",
+  "_release": "0d5a8a207e",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "3a7c964d08ccb7f1bd8216c97dc400d0db0ee3f7"
+    "commit": "0d5a8a207ed4b909002b68826ca8acf25d90e8d3"
   },
   "_source": "git://github.com/kasparsj/jquery-easy-parallax.git",
   "_target": "*",
