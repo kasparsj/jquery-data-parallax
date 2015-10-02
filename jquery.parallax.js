@@ -60,12 +60,24 @@
     }
 
     function animateElement(parallax){
-        var transform = 'translate3d(' + parallax.translateX.call(this) + 'px,' + parallax.translateY.call(this)  + 'px,' + parallax.translateZ.call(this) + 'px)';
+        var transform = '';
+        if (parallax.translateX) {
+            transform += ' translate3d(' + parallax.translateX.call(this) + 'px,' + parallax.translateY.call(this)  + 'px,' + parallax.translateZ.call(this) + 'px)';
+        }
+        if (parallax.scale) {
+            transform += ' scale(' + parallax.scale.call(this) + ')';
+        }
+        if (parallax.rotate) {
+            transform += ' rotate(' + parallax.rotate.call(this) + ')'
+        }
         this.style['-webkit-transform'] = transform;
         this.style['-moz-transform'] = transform;
         this.style['-ms-transform'] = transform;
         this.style['-o-transform'] = transform;
         this.style.transform = transform;
+        if (parallax.opacity) {
+            this.style.opacity = parallax.opacity.call(this);
+        }
     }
 
     function updateElementsArray() {
@@ -73,10 +85,10 @@
         elementsArr = [];
         for (var i=0; i<arr.length; i++) {
             var el = arr[i],
-                $el = $(el);
-            elementsArr.push({
-                el: arr[i],
-                parallax: {
+                $el = $(el),
+                parallax = {};
+            if ($el.data('parallax-x') || $el.data('parallax-y') || $el.data('parallax-z')) {
+                parallax = $.extend(parallax, {
                     translateX: getTranslateFunc.call(el, $el.data('parallax-x'), function() {
                         return getTranslateXYZ.call(this, 12, 4);
                     }),
@@ -86,7 +98,11 @@
                     translateZ: getTranslateFunc.call(el, $el.data('parallax-z'), function() {
                         return getTranslateXYZ.call(this, 14);
                     })
-                }
+                });
+            }
+            elementsArr.push({
+                el: arr[i],
+                parallax: parallax
             });
         }
     }
