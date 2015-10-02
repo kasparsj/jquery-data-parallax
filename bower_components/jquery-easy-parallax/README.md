@@ -1,6 +1,10 @@
 # jquery-easy-parallax
 jQuery plugin for easy parallax effect
 
+## Demo
+
+http://kasparsj.github.io/jquery-easy-parallax/
+
 ## Availability
 
 ```bash
@@ -20,11 +24,11 @@ bower install jquery-easy-parallax
 Either use data attributes:
 
 ```html
-<div data-parallax="true" data-speed="0.7"></div>
+<div data-parallax-y="0.7"></div>
 ```
 
 or javascript:
 
 ```javascript
-$("#selector").parallax({speed: 0.7});
+$("#selector").parallax({y: 0.7});
 ```
