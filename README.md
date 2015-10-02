@@ -1,6 +1,10 @@
 # jquery-easy-parallax
 jQuery plugin for easy parallax effect
 
+## Demo
+
+http://kasparsj.github.io/jquery-easy-parallax/
+
 ## Availability
 
 ```bash
