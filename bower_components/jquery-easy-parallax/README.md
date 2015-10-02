@@ -24,11 +24,16 @@ bower install jquery-easy-parallax
 Either use data attributes:
 
 ```html
-<div data-parallax-y="0.7"></div>
+<div data-parallax-translate="70%" data-parallax-scale="2" data-parallax-rotate="180" data-parallax-opacity="0"></div>
 ```
 
 or javascript:
 
 ```javascript
-$("#selector").parallax({y: 0.7});
+$("#selector").parallax({
+    translate: 70%,
+    scale: 2,
+    rotate: 180,
+    opacity: 0
+});
 ```

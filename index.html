@@ -34,7 +34,7 @@
 </style>
 <body>
 <section class="page-header">
-    <div class="bg-cloud" data-parallax-rotate="180" data-parallax-opacity="0" data-parallax-scale="2" data-parallax-translate="100%"></div>
+    <div class="bg-cloud" data-parallax-translate="70%" data-parallax-scale="2" data-parallax-rotate="180" data-parallax-opacity="0"></div>
     <div class="overlay">
         <h1 class="project-name">jquery-easy-parallax</h1>
         <h2 class="project-tagline">jQuery plugin for easy parallax effect</h2>
@@ -71,11 +71,27 @@
 
     <p>Either use data attributes:</p>
 
-    <div class="highlight highlight-text-html-basic"><pre>&lt;<span class="pl-ent">div</span> <span class="pl-e">data-parallax-y</span>=<span class="pl-s"><span class="pl-pds">"</span>0.7<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">div</span>&gt;</pre></div>
+    <div class="highlight highlight-text-html-basic">
+        <pre>
+&lt;<span class="pl-ent">div</span> <span class="pl-e">data-parallax-translate</span>=<span class="pl-s"><span class="pl-pds">"</span>70%<span class="pl-pds">"</span></span>
+     <span class="pl-e">data-parallax-scale</span>=<span class="pl-s"><span class="pl-pds">"</span>2<span class="pl-pds">"</span></span>
+     <span class="pl-e">data-parallax-rotate</span>=<span class="pl-s"><span class="pl-pds">"</span>180<span class="pl-pds">"</span></span>
+     <span class="pl-e">data-parallax-opacity</span>=<span class="pl-s"><span class="pl-pds">"</span>0<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">div</span>&gt;
+        </pre>
+    </div>
 
     <p>or javascript:</p>
 
-    <div class="highlight highlight-source-js"><pre>$(<span class="pl-s"><span class="pl-pds">"</span>#selector<span class="pl-pds">"</span></span>).parallax({y<span class="pl-k">:</span> <span class="pl-c1">0.7</span>});</pre></div>
+    <div class="highlight highlight-source-js">
+        <pre>
+$(<span class="pl-s"><span class="pl-pds">"</span>#selector<span class="pl-pds">"</span></span>).parallax({
+    translate<span class="pl-k">:</span> <span class="pl-c1">"70%"</span>,
+    scale<span class="pl-k">:</span> <span class="pl-c1">2</span>,
+    rotate<span class="pl-k">:</span> <span class="pl-c1">180</span>,
+    opacity<span class="pl-k">:</span> <span class="pl-c1">0</span>
+});
+        </pre>
+    </div>
 
     <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/kasparsj/jquery-easy-parallax">jquery-easy-parallax</a> is maintained by <a href="https://github.com/kasparsj">kasparsj</a>.</span>
