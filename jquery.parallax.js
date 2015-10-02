@@ -3,6 +3,7 @@
 
     var $window = $(window),
         $elements = null,
+        elementsArr,
         scrollTop,
         windowHeight,
         ticking = false,
@@ -25,11 +26,12 @@
                 if (!isTouchDevice) {
                     if ($elements === null) {
                         $elements = this;
-                        $window.on("scroll", onScroll);
+                        window.onscroll = onScroll;
                     }
                     else {
                         $elements.add(this);
                     }
+                    updateElementsArray();
                 }
         }
         return this;
@@ -41,59 +43,97 @@
 
     function requestTick() {
         if (!ticking) {
-            window.requestAnimationFrame(update);
+            window.requestAnimationFrame(animateElements);
             ticking = true;
         }
     }
 
-    function update(time) {
+    function animateElements() {
         scrollTop = $window.scrollTop();
         windowHeight = $window.height();
 
-        $elements.each(function(){
-            var $this = $(this),
-                start = $this.data('start') || 0,
-                end = $this.data('end') || Number.MAX_SAFE_INTEGER;
-            if (scrollTop >= start && scrollTop < end) {
-                var speed = $this.data('speed') || 0.5,
-                    distance = ((scrollTop - start) * speed),
-                    translateX = getTranslateX(this),
-                    translateY = distance.toFixed(2),
-                    translateZ = getTranslateZ(this),
-                    transform = 'translate3d(' + translateX + 'px,' + translateY  + 'px,' + translateZ + 'px)';
-                $this.css({
-                    "-ms-transform": transform,
-                    "-webkit-transform": transform,
-                    transform: transform
-                });
-            }
-        });
+        for (var i=0; i<elementsArr.length; i++) {
+            animateElement.call(elementsArr[i].el, elementsArr[i].parallax);
+        }
 
         ticking = false;
     }
 
-    function getTranslateX(obj) {
-        if(!window.getComputedStyle) return;
-        var style = getComputedStyle(obj),
-            transform = style.transform || style.webkitTransform || style.mozTransform;
-        var mat = transform.match(/^matrix3d\((.+)\)$/);
-        if(mat) return parseFloat(mat[1].split(', ')[12]);
-        mat = transform.match(/^matrix\((.+)\)$/);
-        return mat ? parseFloat(mat[1].split(', ')[4]) : 0;
+    function animateElement(parallax){
+        var transform = 'translate3d(' + parallax.translateX.call(this) + 'px,' + parallax.translateY.call(this)  + 'px,' + parallax.translateZ.call(this) + 'px)';
+        this.style['-webkit-transform'] = transform;
+        this.style['-moz-transform'] = transform;
+        this.style['-ms-transform'] = transform;
+        this.style['-o-transform'] = transform;
+        this.style.transform = transform;
     }
 
-    function getTranslateZ(obj) {
-        if(!window.getComputedStyle) return;
-        var style = getComputedStyle(obj),
+    function updateElementsArray() {
+        var arr = $elements.toArray();
+        elementsArr = [];
+        for (var i=0; i<arr.length; i++) {
+            var $el = $(arr[i]);
+            elementsArr.push({
+                el: arr[i],
+                parallax: {
+                    translateX: getTranslateFunc.call($el, $el.data('parallax-x'), function() {
+                        return getTranslateXYZ.call(this, 12, 4);
+                    }),
+                    translateY: getTranslateFunc.call($el, $el.data('parallax-y'), function() {
+                        return getTranslateXYZ.call(this, 13, 5);
+                    }),
+                    translateZ: getTranslateFunc.call($el, $el.data('parallax-z'), function() {
+                        return getTranslateXYZ.call(this, 14);
+                    })
+                }
+            });
+        }
+    }
+
+    function getTranslateFunc(options, valueFunc) {
+        switch (typeof(options)) {
+            case "number":
+                options = {
+                    speed: options
+                };
+            case "object":
+                var start = options.start || 0,
+                    end = options.end || Number.MAX_SAFE_INTEGER,
+                    speed = options.speed || 0.5;
+                return function() {
+                    if (scrollTop >= start && scrollTop <= end) {
+                        return ((scrollTop - start) * speed).toFixed(2);
+                    }
+                };
+            case "string":
+                if (options == "dynamic") {
+                    return function () {
+                        valueFunc.call(this);
+                    };
+                }
+            case "undefined":
+                var value = valueFunc.call(this);
+                return function() {
+                    return value;
+                };
+        }
+    }
+
+    function getTranslateXYZ(mat3dIdx, matIdx) {
+        if (!window.getComputedStyle) return;
+        var style = getComputedStyle(this),
             transform = style.transform || style.webkitTransform || style.mozTransform;
         var mat = transform.match(/^matrix3d\((.+)\)$/);
-        return mat ? parseFloat(mat[1].split(', ')[14]) : 0;
+        if(mat) return parseFloat(mat[1].split(', ')[mat3dIdx]);
+        else if (arguments.length < 3) return 0;
+        mat = transform.match(/^matrix\((.+)\)$/);
+        return mat ? parseFloat(mat[1].split(', ')[matIdx]) : 0;
     }
 
     if (!isTouchDevice) {
         $(function() {
 
-            $('[data-parallax="true"]').parallax();
+            $('[data-parallax-x],[data-parallax-y][data-parallax-z]').parallax();
 
         });
     }
