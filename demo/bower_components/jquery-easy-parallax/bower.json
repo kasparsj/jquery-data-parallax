@@ -1,0 +1,26 @@
+{
+  "name": "jquery-easy-parallax",
+  "version": "0.1.0",
+  "homepage": "https://github.com/kasparsj/jquery-easy-parallax",
+  "authors": [
+    "Kaspars <kasparsj@gmail.com>"
+  ],
+  "description": "jQuery plugin for easy parallax effect",
+  "main": "jquery.parallax.js",
+  "dependencies": {
+    "jquery": "*",
+    "requestAnimationFrame.js": "latest"
+  },
+  "keywords": [
+    "jQuery",
+    "parallax"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
