@@ -24,7 +24,8 @@
                 break;
             default:
                 if (!isTouchDevice) {
-                    updateParallaxOptions.call(this, method || {})
+                    var options = method || {};
+                    updateParallaxData.call(this, options)
                     if ($elements === null) {
                         $elements = this;
                         window.onscroll = onScroll;
@@ -38,20 +39,33 @@
         return this;
     };
 
-    function updateParallaxOptions(options) {
+    function updateParallaxData(options) {
         this.each(function() {
-            var $this = $(this);
-            $this.data("parallax-options", {
-                translateX: getTranslateFunc.call(this, options.x || $this.data('parallax-x'), function() {
-                    return getTranslateXYZ.call(this, 12, 4);
-                }),
-                translateY: getTranslateFunc.call(this, options.y || $this.data('parallax-y'), function() {
-                    return getTranslateXYZ.call(this, 13, 5);
-                }),
-                translateZ: getTranslateFunc.call(this, options.z || $this.data('parallax-z'), function() {
-                    return getTranslateXYZ.call(this, 14);
-                })
-            });
+            var $this = $(this),
+                parallax = {};
+            if ($this.data('parallax-x') || $this.data('parallax-y') || $this.data('parallax-z')) {
+                parallax = $.extend(parallax, {
+                    translateX: getTranslateFunc.call(this, options.x || $this.data('parallax-x'), function() {
+                        return getTranslateXYZ.call(this, 12, 4);
+                    }),
+                    translateY: getTranslateFunc.call(this, options.y || $this.data('parallax-y'), function() {
+                        return getTranslateXYZ.call(this, 13, 5);
+                    }),
+                    translateZ: getTranslateFunc.call(this, options.z || $this.data('parallax-z'), function() {
+                        return getTranslateXYZ.call(this, 14);
+                    })
+                });
+            }
+            if ($this.data('parallax-scale')) {
+                // todo: implement
+            }
+            if ($this.data('parallax-rotate')) {
+                // todo: implement
+            }
+            if ($this.data('parallax-opacity')) {
+                // todo: implement
+            }
+            $this.data("parallax", parallax);
         });
     }
 
@@ -79,13 +93,25 @@
 
     function animateElement() {
         var $this = $(this),
-            options = $this.data("parallax-options");
-        var transform = 'translate3d(' + options.translateX.call(this) + 'px,' + options.translateY.call(this)  + 'px,' + options.translateZ.call(this) + 'px)';
+            parallax = $this.data("parallax"),
+            transform = '';
+        if (parallax.translateX) {
+            transform += ' translate3d(' + parallax.translateX.call(this) + 'px,' + parallax.translateY.call(this) + 'px,' + parallax.translateZ.call(this) + 'px)';
+        }
+        if (parallax.scale) {
+            transform += ' scale(' + parallax.scale.call(this) + ')';
+        }
+        if (parallax.rotate) {
+            transform += ' rotate(' + parallax.rotate.call(this) + ')'
+        }
         this.style['-webkit-transform'] = transform;
         this.style['-moz-transform'] = transform;
         this.style['-ms-transform'] = transform;
         this.style['-o-transform'] = transform;
         this.style.transform = transform;
+        if (parallax.opacity) {
+            this.style.opacity = parallax.opacity.call(this);
+        }
     }
 
     function getTranslateFunc(options, valueFunc) {
