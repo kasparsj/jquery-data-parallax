@@ -15,19 +15,19 @@
         min-height: 300px;
         max-height: 700px;
         background: none;
+        position: relative;
+        overflow: hidden;
     }
     .bg-cloud {
         position: absolute;
         top: 0;
         left: 0;
-        bottom: 0;
-        right: 0;
+        width: 100%;
+        height: inherit;
         background-image: url(cloud.jpg);
         background-repeat: no-repeat;
         background-size: cover;
-    }
-    .bg-white {
-        background-color: #fff;
+        background-position: 50% 0;
     }
     .overlay {
         position: relative;
@@ -46,48 +46,46 @@
     </div>
 </section>
 
-<div class="overlay bg-white">
-    <section class="main-content">
-        <h1>
-            <a id="jquery-easy-parallax" class="anchor" href="#jquery-easy-parallax" aria-hidden="true"><span class="octicon octicon-link"></span></a>jquery-easy-parallax</h1>
+<section class="main-content">
+    <h1>
+        <a id="jquery-easy-parallax" class="anchor" href="#jquery-easy-parallax" aria-hidden="true"><span class="octicon octicon-link"></span></a>jquery-easy-parallax</h1>
 
-        <p>jQuery plugin for easy parallax effect</p>
+    <p>jQuery plugin for easy parallax effect</p>
 
-        <h2>
-            <a id="availability" class="anchor" href="#availability" aria-hidden="true"><span class="octicon octicon-link"></span></a>Availability</h2>
+    <h2>
+        <a id="availability" class="anchor" href="#availability" aria-hidden="true"><span class="octicon octicon-link"></span></a>Availability</h2>
 
-        <div class="highlight highlight-source-shell"><pre>bower install jquery-easy-parallax</pre></div>
+    <div class="highlight highlight-source-shell"><pre>bower install jquery-easy-parallax</pre></div>
 
-        <h2>
-            <a id="installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation</h2>
+    <h2>
+        <a id="installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation</h2>
 
-        <div class="highlight highlight-text-html-basic">
-            <pre>
+    <div class="highlight highlight-text-html-basic">
+        <pre>
 &lt;<span class="pl-ent">script</span> <span class="pl-e">src</span>=<span class="pl-s"><span class="pl-pds">"</span>bower_components/jquery/dist/jquery.min.js<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">script</span>&gt;
 &lt;<span class="pl-ent">script</span> <span class="pl-e">src</span>=<span class="pl-s"><span class="pl-pds">"</span>bower_components/requestAnimationFrame.js/requestAnimationFrame.min.js<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">script</span>&gt;
 &lt;<span class="pl-ent">script</span> <span class="pl-e">src</span>=<span class="pl-s"><span class="pl-pds">"</span>bower_components/jquery-easy-parallax/jquery.parallax.min.js<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">script</span>&gt;
-            </pre>
-        </div>
+        </pre>
+    </div>
 
-        <h2>
-            <a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h2>
+    <h2>
+        <a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h2>
 
-        <p>Either use data attributes:</p>
+    <p>Either use data attributes:</p>
 
-        <div class="highlight highlight-text-html-basic"><pre>&lt;<span class="pl-ent">div</span> <span class="pl-e">data-parallax</span>=<span class="pl-s"><span class="pl-pds">"</span>true<span class="pl-pds">"</span></span> <span class="pl-e">data-speed</span>=<span class="pl-s"><span class="pl-pds">"</span>0.7<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">div</span>&gt;</pre></div>
+    <div class="highlight highlight-text-html-basic"><pre>&lt;<span class="pl-ent">div</span> <span class="pl-e">data-parallax</span>=<span class="pl-s"><span class="pl-pds">"</span>true<span class="pl-pds">"</span></span> <span class="pl-e">data-speed</span>=<span class="pl-s"><span class="pl-pds">"</span>0.7<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">div</span>&gt;</pre></div>
 
-        <p>or javascript:</p>
+    <p>or javascript:</p>
 
-        <div class="highlight highlight-source-js"><pre>$(<span class="pl-s"><span class="pl-pds">"</span>#selector<span class="pl-pds">"</span></span>).parallax({speed<span class="pl-k">:</span> <span class="pl-c1">0.7</span>});</pre></div>
+    <div class="highlight highlight-source-js"><pre>$(<span class="pl-s"><span class="pl-pds">"</span>#selector<span class="pl-pds">"</span></span>).parallax({speed<span class="pl-k">:</span> <span class="pl-c1">0.7</span>});</pre></div>
 
-        <footer class="site-footer">
-            <span class="site-footer-owner"><a href="https://github.com/kasparsj/jquery-easy-parallax">jquery-easy-parallax</a> is maintained by <a href="https://github.com/kasparsj">kasparsj</a>.</span>
+    <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/kasparsj/jquery-easy-parallax">jquery-easy-parallax</a> is maintained by <a href="https://github.com/kasparsj">kasparsj</a>.</span>
 
-            <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
-        </footer>
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+    </footer>
 
-    </section>
-</div>
+</section>
 
 <script src="bower_components/jquery/dist/jquery.min.js"></script>
 <script src="bower_components/requestAnimationFrame.js/requestAnimationFrame.min.js"></script>
