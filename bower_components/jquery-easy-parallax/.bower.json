@@ -1,5 +1,6 @@
 {
   "name": "jquery-easy-parallax",
+  "version": "0.1.1",
   "homepage": "https://github.com/kasparsj/jquery-easy-parallax",
   "authors": [
     "Kaspars <kasparsj@gmail.com>"
@@ -22,14 +23,14 @@
     "test",
     "tests"
   ],
-  "_release": "970aaa266e",
+  "_release": "0.1.1",
   "_resolution": {
-    "type": "branch",
-    "branch": "master",
-    "commit": "970aaa266ed3baffa9861dc7173a864c77f5ca1d"
+    "type": "version",
+    "tag": "0.1.1",
+    "commit": "98d1abf4b3b30a7d8c0d3dc6c784706d424bde11"
   },
   "_source": "git://github.com/kasparsj/jquery-easy-parallax.git",
-  "_target": "*",
+  "_target": "~0.1.1",
   "_originalSource": "jquery-easy-parallax",
   "_direct": true
 }
