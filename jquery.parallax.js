@@ -4,7 +4,7 @@
     var $window = $(window),
         $elements = null,
         elementsArr,
-        parallaxArr,
+        animationsArr,
         scrollTop,
         windowHeight = $window.height(),
         windowWidth = $window.width(),
@@ -27,10 +27,9 @@
                 break;
             default:
                 if (!isTouchDevice) {
-                    var options = method || {};
-                    setParallaxOptions.call(this, options);
-                    parallaxArr = [];
-                    this.each(updateParallaxArray);
+                    this.data("parallax-js", method);
+                    animationsArr = [];
+                    this.each(updateAnimationsArray);
                     if ($elements === null) {
                         $elements = this;
                         window.onresize = onResize;
@@ -46,51 +45,71 @@
         return this;
     };
 
-    function setParallaxOptions(options) {
-        options || (options = {});
-        this.data("parallax-options", options);
+    function parseOptions() {
+        var optionsArr = [],
+            dataOptions = this.data("parallax") || {},
+            jsOptions = this.data("parallax-js") || {};
+        if (!Array.isArray(dataOptions)) {
+            dataOptions = [dataOptions];
+        }
+        if (!Array.isArray(jsOptions)) {
+            jsOptions = [jsOptions];
+        }
+        var length = Math.max(dataOptions.length, jsOptions.length);
+        for (var i=0; i<length; i++) {
+            var options = $.extend(dataOptions[i] || {}, jsOptions[i] || {});
+            options.start = convertToOffset(typeof options.start != "undefined" ? options.start : this, options.axis);
+            typeof options.trigger != "undefined" || (options.trigger = "100%");
+            typeof options.duration != "undefined" || (options.duration = ((convertToOffset(this, options.axis) + this.outerHeight()) - options.start));
+            optionsArr.push(options);
+        }
+        return optionsArr;
     }
 
-    function updateParallaxArray(idx) {
+    function updateAnimationsArray(idx) {
         var $this = $(this),
-            options = $this.data("parallax-options"),
-            start = $this.data("parallax-start") || $this.offset().top,
-            trigger = $this.data("parallax-trigger") || "100%",
-            globalOptions = {
-                start: start,
-                trigger: trigger,
-                duration: $this.data("parallax-duration") || (Math.min(convertToPx(trigger), start) + $this.outerHeight())
-            },
-            parallax = {};
-        if (options.translateX || typeof $this.data("parallax-translate-x") != "undefined") {
-            var translateXOptions = mergeOptions(options.translateX || $this.data("parallax-translate-x"), globalOptions);
-            parallax.translateX = new Scene(translateXOptions, windowHeight);
-        }
-        if (options.translateY || typeof $this.data("parallax-translate-y") != "undefined") {
-            var translateYOptions = mergeOptions(options.translateY || $this.data("parallax-translate-y"), globalOptions);
-            parallax.translateY = new Scene(translateYOptions, windowHeight);
-        }
-        if (options.translateZ || typeof $this.data("parallax-translate-z") != "undefined") {
-            var translateZOptions = mergeOptions(options.translateZ || $this.data("parallax-translate-z"), globalOptions);
-            parallax.translateZ = new Scene(translateZOptions, windowHeight);
-        }
-        if (options.scale || typeof $this.data('parallax-scale') != "undefined") {
-            var scaleOptions = mergeOptions(options.scale || $this.data('parallax-scale'), globalOptions, 1);
-            parallax.scale = new Scene(scaleOptions, 1);
-        }
-        if (options.rotate || typeof $this.data('parallax-rotate') != "undefined") {
-            var rotateOptions = mergeOptions(options.rotate || $this.data('parallax-rotate'), globalOptions);
-            parallax.rotate = new Scene(rotateOptions, 360);
-        }
-        if (parallax.translateX || parallax.translateY || parallax.translateZ || parallax.scale || parallax.rotate) {
-            parallax.transform = new Transform(new TransformMatrix());
-        }
+            animations = [],
+            optionsArr = parseOptions.call($this);
+        for (var i=0; i<optionsArr.length; i++) {
+            var options = optionsArr[i],
+                globalOptions = {
+                    axis: options.axis,
+                    start: options.start,
+                    trigger: options.trigger,
+                    duration: options.duration
+                },
+                animation = {};
+            if (typeof options.translateX != "undefined") {
+                var translateXOptions = mergeOptions(options.translateX, globalOptions);
+                animation.translateX = new Scene(translateXOptions, windowHeight);
+            }
+            if (typeof options.translateY != "undefined") {
+                var translateYOptions = mergeOptions(options.translateY, globalOptions);
+                animation.translateY = new Scene(translateYOptions, windowHeight);
+            }
+            if (typeof options.translateZ != "undefined") {
+                var translateZOptions = mergeOptions(options.translateZ, globalOptions);
+                animation.translateZ = new Scene(translateZOptions, windowHeight);
+            }
+            if (typeof options.scale != "undefined") {
+                var scaleOptions = mergeOptions(options.scale, globalOptions, 1);
+                animation.scale = new Scene(scaleOptions, 1);
+            }
+            if (typeof options.rotate != "undefined") {
+                var rotateOptions = mergeOptions(options.rotate, globalOptions);
+                animation.rotate = new Scene(rotateOptions, 360);
+            }
+            if (animation.translateX || animation.translateY || animation.translateZ || animation.scale || animation.rotate) {
+                animation.transform = new Transform(new TransformMatrix());
+            }
 
-        if (options.opacity || typeof $this.data('parallax-opacity') != "undefined") {
-            var opacityOptions = mergeOptions(options.opacity || $this.data('parallax-opacity'), globalOptions, 1);
-            parallax.opacity = new Scene(opacityOptions, 1);
+            if (typeof options.opacity != "undefined") {
+                var opacityOptions = mergeOptions(options.opacity, globalOptions, 1);
+                animation.opacity = new Scene(opacityOptions, 1);
+            }
+            animations.push(animation);
         }
-        parallaxArr[idx] = parallax;
+        animationsArr[idx] = animations;
     }
 
     function onResize() {
@@ -98,7 +117,7 @@
             window.requestAnimationFrame(function() {
                 windowHeight = $window.height();
                 windowWidth = $window.width();
-                $elements.each(updateParallaxArray);
+                $elements.each(updateAnimationsArray);
             });
             resizeTicking = true;
         }
@@ -120,33 +139,37 @@
     }
 
     function animateElement(idx) {
-        var parallax = parallaxArr[idx];
-        if (parallax.transform) {
-            TransformMatrix.fromEl(this, parallax.transform.matrix);
-            if (parallax.translateX && parallax.translateX.update()) {
-                parallax.transform.setTranslateX(parallax.translateX.value());
+        var animations = animationsArr[idx],
+            animation;
+        for (var i=0; i<animations.length; i++) {
+            animation = animations[i];
+            if (animation.transform) {
+                TransformMatrix.fromEl(this, animation.transform.matrix);
+                if (animation.translateX && animation.translateX.update()) {
+                    animation.transform.setTranslateX(animation.translateX.value());
+                }
+                if (animation.translateY && animation.translateY.update()) {
+                    animation.transform.setTranslateY(animation.translateY.value());
+                }
+                if (animation.translateZ && animation.translateZ.update()) {
+                    animation.transform.setTranslateZ(animation.translateZ.value());
+                }
+                if (animation.scale && animation.scale.update()) {
+                    animation.transform.setScale(animation.scale.value());
+                }
+                if (animation.rotate && animation.rotate.update()) {
+                    animation.transform.setRotation(animation.rotate.value());
+                }
+                var transform = animation.transform.toString();
+                this.style['-webkit-transform'] = transform;
+                this.style['-moz-transform'] = transform;
+                this.style['-ms-transform'] = transform;
+                this.style['-o-transform'] = transform;
+                this.style.transform = transform;
             }
-            if (parallax.translateY && parallax.translateY.update()) {
-                parallax.transform.setTranslateY(parallax.translateY.value());
+            if (animation.opacity && animation.opacity.update()) {
+                this.style.opacity = animation.opacity.value();
             }
-            if (parallax.translateZ && parallax.translateZ.update()) {
-                parallax.transform.setTranslateZ(parallax.translateZ.value());
-            }
-            if (parallax.scale && parallax.scale.update()) {
-                parallax.transform.setScale(parallax.scale.value());
-            }
-            if (parallax.rotate && parallax.rotate.update()) {
-                parallax.transform.setRotation(parallax.rotate.value());
-            }
-            var transform = parallax.transform.toString();
-            this.style['-webkit-transform'] = transform;
-            this.style['-moz-transform'] = transform;
-            this.style['-ms-transform'] = transform;
-            this.style['-o-transform'] = transform;
-            this.style.transform = transform;
-        }
-        if (parallax.opacity && parallax.opacity.update()) {
-            this.style.opacity = parallax.opacity.value();
         }
     }
 
@@ -158,6 +181,19 @@
             options.from = defaultFrom || 0;
         }
         return $.extend({}, globalOptions, options);
+    }
+
+    function convertToOffset(value, axis) {
+        if (typeof value === "string") {
+            value = $(value);
+            if (!value.length) {
+                throw new Error("Invalid parallax start selector");
+            }
+        }
+        if (value instanceof jQuery) {
+            value = value.offset()[axis === 'x' ? 'left' : 'top'];
+        }
+        return value;
     }
 
     function convertToPx(value, axis) {
@@ -182,12 +218,12 @@
         //return -c/2 * (Math.cos(Math.PI*t/d) - 1) + b;
     }
 
-    function Scene(options, maxValue, axis) {
-        this.start = Math.max(options.start - convertToPx(options.trigger, axis), 0),
-            this.trigger = options.trigger,
-            this.duration = convertToPx(options.duration, axis),
-            this.from = covertOption(options.from, maxValue),
-            this.to = covertOption(options.to, maxValue);
+    function Scene(options, maxValue) {
+        this.start = Math.max(convertToOffset(options.start, options.axis) - convertToPx(options.trigger, options.axis), 0);
+        this.trigger = options.trigger;
+        this.duration = convertToPx(options.duration, options.axis);
+        this.from = covertOption(options.from, maxValue);
+        this.to = covertOption(options.to, maxValue);
     }
     Scene.prototype = {
         update: function() {
@@ -321,11 +357,15 @@
     if (!isTouchDevice) {
         $(function() {
 
-            var selector  = '[data-parallax-translate-x],[data-parallax-translate-y],[data-parallax-translate-z]';
-            selector += ',[data-parallax-scale],[data-parallax-rotate],[data-parallax-opacity]';
-            $(selector).parallax();
+            $("[data-parallax]").parallax();
 
         });
     }
 
 })(jQuery);
+
+if (!Array.isArray) {
+    Array.isArray = function(arg) {
+        return Object.prototype.toString.call(arg) === '[object Array]';
+    };
+}
