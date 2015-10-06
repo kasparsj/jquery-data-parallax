@@ -63,7 +63,6 @@
             typeof options.start != "undefined" || (options.start = this);
             options.start = getOffset(options.start, options.axis);
             typeof options.trigger != "undefined" || (options.trigger = "100%");
-            typeof options.duration != "undefined" || (options.duration = ((getOffset(this, options.axis) + this.outerHeight()) - options.start));
             optionsArr.push(options);
         }
         return optionsArr;
@@ -84,23 +83,23 @@
                 animation = {};
             if (typeof options.translateX != "undefined") {
                 var translateXOptions = mergeOptions(options.translateX, globalOptions);
-                animation.translateX = new Scene(translateXOptions, windowHeight);
+                animation.translateX = new Scene($this, translateXOptions, windowHeight);
             }
             if (typeof options.translateY != "undefined") {
                 var translateYOptions = mergeOptions(options.translateY, globalOptions);
-                animation.translateY = new Scene(translateYOptions, windowHeight);
+                animation.translateY = new Scene($this, translateYOptions, windowHeight);
             }
             if (typeof options.translateZ != "undefined") {
                 var translateZOptions = mergeOptions(options.translateZ, globalOptions);
-                animation.translateZ = new Scene(translateZOptions, windowHeight);
+                animation.translateZ = new Scene($this, translateZOptions, windowHeight);
             }
             if (typeof options.scale != "undefined") {
                 var scaleOptions = mergeOptions(options.scale, globalOptions, 1);
-                animation.scale = new Scene(scaleOptions, 1);
+                animation.scale = new Scene($this, scaleOptions, 1);
             }
             if (typeof options.rotate != "undefined") {
                 var rotateOptions = mergeOptions(options.rotate, globalOptions);
-                animation.rotate = new Scene(rotateOptions, 360);
+                animation.rotate = new Scene($this, rotateOptions, 360);
             }
             if (animation.translateX || animation.translateY || animation.translateZ || animation.scale || animation.rotate) {
                 animation.transform = new Transform(new TransformMatrix());
@@ -108,7 +107,7 @@
 
             if (typeof options.opacity != "undefined") {
                 var opacityOptions = mergeOptions(options.opacity, globalOptions, 1);
-                animation.opacity = new Scene(opacityOptions, 1);
+                animation.opacity = new Scene($this, opacityOptions, 1);
             }
             animations.push(animation);
         }
@@ -225,11 +224,21 @@
         //return -c/2 * (Math.cos(Math.PI*t/d) - 1) + b;
     }
 
-    function Scene(options, maxValue) {
+    function Scene($el, options, maxValue) {
+        this.$el = $el;
+        this.axis = options.axis;
         this.from = covertOption(options.from, maxValue);
         this.to = covertOption(options.to, maxValue);
-        this.start = Math.max(getOffset(options.start, options.axis) - convertToPx(options.trigger, options.axis), 0);
-        this.duration = convertToPx(options.duration, options.axis);
+        this.start = Math.max(getOffset(convertToObj(options.start) || options.start, options.axis) - convertToPx(options.trigger, options.axis), 0);
+
+        var scene = this;
+        if (typeof options.duration != "undefined") {
+            this.duration = convertToPx(options.duration, options.axis);
+        }
+        else {
+            this.duration = ((getOffset(scene.$el, options.axis) + scene.$el.outerHeight()) - scene.start);
+            console.log(this.duration);
+        }
         if (this.duration < 0) {
             console.error("Invalid parallax duration: "+this.duration);
         }
