@@ -27,9 +27,7 @@ Either use data attributes:
 <div data-parallax-translate-y="70%"
      data-parallax-scale="2"
      data-parallax-rotate="180"
-     data-parallax-opacity="0"
-     data-parallax-trigger="50%"
-     data-parallax-duration="100%"></div>
+     data-parallax-opacity="0"></div>
 ```
 
 or javascript:
@@ -39,8 +37,6 @@ $("#selector").parallax({
     "translate-y": "70%",
     "scale": 2,
     "rotate": 180,
-    "opacity": 0,
-    "trigger": "50%",
-    "duration": "100%"
+    "opacity": 0
 });
 ```
