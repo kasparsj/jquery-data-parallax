@@ -59,9 +59,11 @@
         var length = Math.max(dataOptions.length, jsOptions.length);
         for (var i=0; i<length; i++) {
             var options = $.extend(dataOptions[i] || {}, jsOptions[i] || {});
-            options.start = convertToOffset(typeof options.start != "undefined" ? options.start : this, options.axis);
+            typeof options.start == "undefined" || (options.start = convertToObj(options.start));
+            typeof options.start != "undefined" || (options.start = this);
+            options.start = getOffset(options.start, options.axis);
             typeof options.trigger != "undefined" || (options.trigger = "100%");
-            typeof options.duration != "undefined" || (options.duration = ((convertToOffset(this, options.axis) + this.outerHeight()) - options.start));
+            typeof options.duration != "undefined" || (options.duration = ((getOffset(this, options.axis) + this.outerHeight()) - options.start));
             optionsArr.push(options);
         }
         return optionsArr;
@@ -184,17 +186,21 @@
         return $.extend({}, globalOptions, options);
     }
 
-    function convertToOffset(value, axis) {
-        if (typeof value === "string") {
-            value = $(value);
-            if (!value.length) {
-                throw new Error("Invalid parallax start selector");
-            }
-        }
+    function getOffset(value, axis) {
         if (value instanceof jQuery) {
             value = value.offset()[axis === 'x' ? 'left' : 'top'];
         }
         return value;
+    }
+
+    function convertToObj(value) {
+        if (typeof value === "string") {
+            value = $(value);
+            if (value.length) {
+                return value;
+            }
+            console.error("Invalid parallax start selector: "+value);
+        }
     }
 
     function convertToPx(value, axis) {
@@ -220,11 +226,13 @@
     }
 
     function Scene(options, maxValue) {
-        this.start = Math.max(convertToOffset(options.start, options.axis) - convertToPx(options.trigger, options.axis), 0);
-        this.trigger = options.trigger;
-        this.duration = convertToPx(options.duration, options.axis);
         this.from = covertOption(options.from, maxValue);
         this.to = covertOption(options.to, maxValue);
+        this.start = Math.max(getOffset(convertToObj(options.start) || options.start, options.axis) - convertToPx(options.trigger, options.axis), 0);
+        this.duration = convertToPx(options.duration, options.axis);
+        if (this.duration < 0) {
+            console.error("Invalid parallax duration: "+this.duration);
+        }
     }
     Scene.prototype = {
         update: function() {
@@ -365,8 +373,16 @@
 
 })(jQuery);
 
+// isArray shim
 if (!Array.isArray) {
     Array.isArray = function(arg) {
         return Object.prototype.toString.call(arg) === '[object Array]';
+    };
+}
+
+// console.error shim
+if (!console["error"]) {
+    console.error = function(message) {
+        window.alert(message);
     };
 }
