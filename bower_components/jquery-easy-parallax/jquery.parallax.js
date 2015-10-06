@@ -184,10 +184,10 @@
 
     function Scene(options, maxValue, axis) {
         this.start = Math.max(options.start - convertToPx(options.trigger, axis), 0),
-        this.trigger = options.trigger,
-        this.duration = convertToPx(options.duration, axis),
-        this.from = covertOption(options.from, maxValue),
-        this.to = covertOption(options.to, maxValue);
+            this.trigger = options.trigger,
+            this.duration = convertToPx(options.duration, axis),
+            this.from = covertOption(options.from, maxValue),
+            this.to = covertOption(options.to, maxValue);
     }
     Scene.prototype = {
         update: function() {
@@ -322,7 +322,7 @@
         $(function() {
 
             var selector  = '[data-parallax-translate-x],[data-parallax-translate-y],[data-parallax-translate-z]';
-                selector += ',[data-parallax-scale],[data-parallax-rotate],[data-parallax-opacity]';
+            selector += ',[data-parallax-scale],[data-parallax-rotate],[data-parallax-opacity]';
             $(selector).parallax();
 
         });
