@@ -24,7 +24,7 @@ bower install jquery-easy-parallax
 Either use data attributes:
 
 ```html
-<div data-parallax='{"translateY":"70%","scale":2,"rotate":180,opacity:0}'></div>
+<div data-parallax='{"translateY":"70%","scale":2,"rotate":180,"opacity":0}'></div>
 ```
 
 or javascript:
