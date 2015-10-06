@@ -6,6 +6,7 @@
         elementsArr,
         animationsArr,
         scrollTop,
+        len,
         windowHeight = $window.height(),
         windowWidth = $window.width(),
         scrollTicking = false,
@@ -132,7 +133,7 @@
 
     function animateElements() {
         scrollTop = $window.scrollTop();
-        for (var i=0; i<elementsArr.length; i++) {
+        for (var i= 0, len=elementsArr.length; i<len; i++) {
             animateElement.call(elementsArr[i], i);
         }
         scrollTicking = false;
@@ -141,7 +142,7 @@
     function animateElement(idx) {
         var animations = animationsArr[idx],
             animation;
-        for (var i=0; i<animations.length; i++) {
+        for (var i=0, len=animations.length; i<len; i++) {
             animation = animations[i];
             if (animation.transform) {
                 TransformMatrix.fromEl(this, animation.transform.matrix);
