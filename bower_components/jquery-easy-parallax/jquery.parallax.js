@@ -200,6 +200,9 @@
             }
             console.error("Invalid parallax start selector: "+value);
         }
+        else {
+            return value;
+        }
     }
 
     function convertToPx(value, axis) {
