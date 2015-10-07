@@ -17,7 +17,7 @@ body {
     top: 0;
     bottom: 0;
 
-    background-image: url('images/bg@2x.jpg');
+    background-image: url('../images/sky.jpg');
     background-position: 50% 0;
     background-repeat: no-repeat;
     background-size: cover;

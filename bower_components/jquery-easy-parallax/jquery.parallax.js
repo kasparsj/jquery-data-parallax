@@ -61,7 +61,6 @@
             var options = $.extend(dataOptions[i] || {}, jsOptions[i] || {});
             typeof options.start == "undefined" || (options.start = convertToObj(options.start));
             typeof options.start != "undefined" || (options.start = this);
-            options.start = getOffset(options.start, options.axis);
             typeof options.trigger != "undefined" || (options.trigger = "100%");
             optionsArr.push(options);
         }
@@ -133,7 +132,7 @@
     }
 
     function animateElements() {
-        scrollTop = $window.scrollTop();
+        scrollTop = window.scrollY;
         for (var i= 0, len=elementsArr.length; i<len; i++) {
             animateElement.call(elementsArr[i], i);
         }
@@ -147,19 +146,19 @@
             animation = animations[i];
             if (animation.transform) {
                 TransformMatrix.fromEl(this, animation.transform.matrix);
-                if (animation.translateX && animation.translateX.update()) {
+                if (animation.translateX && animation.translateX.updateState()) {
                     animation.transform.setTranslateX(animation.translateX.value());
                 }
-                if (animation.translateY && animation.translateY.update()) {
+                if (animation.translateY && animation.translateY.updateState()) {
                     animation.transform.setTranslateY(animation.translateY.value());
                 }
-                if (animation.translateZ && animation.translateZ.update()) {
+                if (animation.translateZ && animation.translateZ.updateState()) {
                     animation.transform.setTranslateZ(animation.translateZ.value());
                 }
-                if (animation.scale && animation.scale.update()) {
+                if (animation.scale && animation.scale.updateState()) {
                     animation.transform.setScale(animation.scale.value());
                 }
-                if (animation.rotate && animation.rotate.update()) {
+                if (animation.rotate && animation.rotate.updateState()) {
                     animation.transform.setRotation(animation.rotate.value());
                 }
                 var transform = animation.transform.toString();
@@ -169,7 +168,7 @@
                 this.style['-o-transform'] = transform;
                 this.style.transform = transform;
             }
-            if (animation.opacity && animation.opacity.update()) {
+            if (animation.opacity && animation.opacity.updateState()) {
                 this.style.opacity = animation.opacity.value();
             }
         }
@@ -232,28 +231,42 @@
         this.axis = options.axis;
         this.from = covertOption(options.from, maxValue);
         this.to = covertOption(options.to, maxValue);
-        this.start = Math.max(getOffset(convertToObj(options.start) || options.start, options.axis) - convertToPx(options.trigger, options.axis), 0);
+        this.trigger = convertToPx(options.trigger, options.axis);
+        this.start = convertToObj(options.start) || options.start;
+        this.started = false;
 
-        var scene = this;
         if (typeof options.duration != "undefined") {
-            this.duration = convertToPx(options.duration, options.axis);
+            var durationPx = convertToPx(options.duration, options.axis);
+            this.duration = function() {
+                return durationPx;
+            };
         }
         else {
-            this.duration = ((getOffset(scene.$el, options.axis) + scene.$el.outerHeight()) - scene.start);
-            console.log(this.duration);
-        }
-        if (this.duration < 0) {
-            console.error("Invalid parallax duration: "+this.duration);
+            var scene = this;
+            this.duration = function() {
+                return (getOffset(scene.$el, options.axis) + scene.$el.outerHeight()) - scene.startPx;
+            };
         }
     }
     Scene.prototype = {
-        update: function() {
+        updateDuration: function() {
+            this.startPx = Math.max(getOffset(this.start, this.axis) - this.trigger, 0);
+            this.durationPx = this.duration.call(this);
+            if (this.durationPx < 0) {
+                console.error("Invalid parallax duration: "+this.durationPx);
+            }
+        },
+        updateState: function() {
+            if (!this.started) {
+                this.updateDuration();
+            }
             var needsUpdate = (this.state == 'during');
-            if (scrollTop < this.start) {
+            if (scrollTop < this.startPx) {
                 this.state = 'before';
             }
-            else if (scrollTop <= (this.start + this.duration)) {
+            else if (scrollTop <= (this.startPx + this.durationPx)) {
                 this.state = 'during';
+                this.started = true;
                 needsUpdate = true;
             }
             else {
@@ -266,7 +279,7 @@
                 return this.from;
             }
             else if (this.state == 'during') {
-                return easeInOutQuad(scrollTop-this.start, this.from, (this.to - this.from), this.duration);
+                return easeInOutQuad(scrollTop-this.startPx, this.from, (this.to - this.from), this.durationPx);
             }
             else {
                 return this.to;
