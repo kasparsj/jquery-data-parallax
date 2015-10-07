@@ -40,10 +40,11 @@ $("#selector").parallax({
 
 ### Supported properties:
 
-Property value can be specified as number or percentage (string).
-To specify a **from** value as well **to**, use object syntax:
-```javascript
-{"to":1,"from":0}
+Property value can be specified as number or percentage (string) or object.
+To specify a **from** value as well **to**, use the object syntax:
+
+```html
+<div data-parallax='{"opacity":{"to":1,"from":0}'></div>
 ```
 
 translateX
