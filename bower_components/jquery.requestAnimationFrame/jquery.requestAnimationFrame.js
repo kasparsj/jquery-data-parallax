@@ -28,6 +28,26 @@
         };
         window.cancelAnimationFrame = clearTimeout;
     }
+    else if (window.jQuery) {
+        (function( $ ) {
+            var animating;
+            function raf() {
+                if ( animating ) {
+                    requestAnimationFrame( raf );
+                    $.fx.tick();
+                }
+            }
+            $.fx.timer = function( timer ) {
+                if ( timer() && $.timers.push( timer ) && !animating ) {
+                    animating = true;
+                    raf();
+                }
+            };
+            $.fx.stop = function() {
+                animating = false;
+            };
+        }( jQuery ));
+    }
 
     var hasPerformance = !!(window.performance && window.performance.now);
     // Add new wrapper for browsers that don't have performance

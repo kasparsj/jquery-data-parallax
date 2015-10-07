@@ -1,5 +1,6 @@
 {
   "name": "requestAnimationFrame.js",
+  "version": "0.1.0",
   "homepage": "https://github.com/kasparsj/requestAnimationFrame.js",
   "authors": [
     "Kaspars <kasparsj@gmail.com>"
@@ -18,13 +19,13 @@
     "test",
     "tests"
   ],
-  "_release": "5fed5620d2",
+  "_release": "0.1.0",
   "_resolution": {
-    "type": "branch",
-    "branch": "master",
-    "commit": "5fed5620d22469da5bec3b432dd33251fff7e6bb"
+    "type": "version",
+    "tag": "0.1.0",
+    "commit": "4c166f2ec2ad1d485c0d6caaf04d63321df0e403"
   },
-  "_source": "git://github.com/kasparsj/requestAnimationFrame.js.git",
+  "_source": "git://github.com/kasparsj/jquery.requestAnimationFrame.git",
   "_target": "*",
-  "_originalSource": "requestAnimationFrame.js"
+  "_originalSource": "jquery.requestAnimationFrame"
 }
