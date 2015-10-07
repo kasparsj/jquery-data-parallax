@@ -80,17 +80,17 @@
                     duration: options.duration
                 },
                 animation = {};
-            if (typeof options.translateX != "undefined") {
-                var translateXOptions = mergeOptions(options.translateX, globalOptions);
-                animation.translateX = new Scene($this, translateXOptions, windowHeight);
+            if (typeof options.x != "undefined") {
+                var xOptions = mergeOptions(options.x, globalOptions);
+                animation.x = new Scene($this, xOptions, windowHeight);
             }
-            if (typeof options.translateY != "undefined") {
-                var translateYOptions = mergeOptions(options.translateY, globalOptions);
-                animation.translateY = new Scene($this, translateYOptions, windowHeight);
+            if (typeof options.y != "undefined") {
+                var yOptions = mergeOptions(options.y, globalOptions);
+                animation.y = new Scene($this, yOptions, windowHeight);
             }
-            if (typeof options.translateZ != "undefined") {
-                var translateZOptions = mergeOptions(options.translateZ, globalOptions);
-                animation.translateZ = new Scene($this, translateZOptions, windowHeight);
+            if (typeof options.z != "undefined") {
+                var zOptions = mergeOptions(options.z, globalOptions);
+                animation.z = new Scene($this, zOptions, windowHeight);
             }
             if (typeof options.scale != "undefined") {
                 var scaleOptions = mergeOptions(options.scale, globalOptions, 1);
@@ -100,7 +100,7 @@
                 var rotateOptions = mergeOptions(options.rotate, globalOptions);
                 animation.rotate = new Scene($this, rotateOptions, 360);
             }
-            if (animation.translateX || animation.translateY || animation.translateZ || animation.scale || animation.rotate) {
+            if (animation.x || animation.y || animation.z || animation.scale || animation.rotate) {
                 animation.transform = new Transform(new TransformMatrix());
             }
 
@@ -146,14 +146,14 @@
             animation = animations[i];
             if (animation.transform) {
                 TransformMatrix.fromEl(this, animation.transform.matrix);
-                if (animation.translateX && animation.translateX.updateState()) {
-                    animation.transform.setTranslateX(animation.translateX.value());
+                if (animation.x && animation.x.updateState()) {
+                    animation.transform.setTranslateX(animation.x.value());
                 }
-                if (animation.translateY && animation.translateY.updateState()) {
-                    animation.transform.setTranslateY(animation.translateY.value());
+                if (animation.y && animation.y.updateState()) {
+                    animation.transform.setTranslateY(animation.y.value());
                 }
-                if (animation.translateZ && animation.translateZ.updateState()) {
-                    animation.transform.setTranslateZ(animation.translateZ.value());
+                if (animation.z && animation.z.updateState()) {
+                    animation.transform.setTranslateZ(animation.z.value());
                 }
                 if (animation.scale && animation.scale.updateState()) {
                     animation.transform.setScale(animation.scale.value());
@@ -315,12 +315,12 @@
             this.rotate = angle;
         },
         toString: function() {
-            var translateX = (typeof this.translateX != "undefined" ? this.translateX : this.matrix.getTranslateX()).toFixed(2),
-                translateY = (typeof this.translateY != "undefined" ? this.translateY : this.matrix.getTranslateY()).toFixed(2),
-                translateZ = (typeof this.translateZ != "undefined" ? this.translateZ : this.matrix.getTranslateZ()).toFixed(2),
+            var x = (typeof this.translateX != "undefined" ? this.translateX : this.matrix.getTranslateX()).toFixed(2),
+                y = (typeof this.translateY != "undefined" ? this.translateY : this.matrix.getTranslateY()).toFixed(2),
+                z = (typeof this.translateZ != "undefined" ? this.translateZ : this.matrix.getTranslateZ()).toFixed(2),
                 scale = (typeof this.scale != "undefined" ? this.scale : this.matrix.getScale()),
                 rotate = (typeof this.rotate != "undefined" ? this.rotate : this.matrix.getRotation()),
-                string = 'translate3d('+translateX+'px, '+translateY+'px, '+translateZ+'px)';
+                string = 'translate3d('+x+'px, '+y+'px, '+z+'px)';
             if (scale != 1) {
                 string += ' scale('+scale+')';
             }

@@ -24,14 +24,14 @@ bower install jquery-easy-parallax
 Either use data attributes:
 
 ```html
-<div data-parallax='{"translateY":"70%","scale":2,"rotate":180,"opacity":0}'></div>
+<div data-parallax='{"y":"70%","scale":2,"rotate":180,"opacity":0}'></div>
 ```
 
 or javascript:
 
 ```javascript
 $("#selector").parallax({
-    "translateY": "70%",
+    "y": "70%",
     "scale": 2,
     "rotate": 180,
     "opacity": 0
@@ -49,11 +49,11 @@ To specify a **from** value as well **to**, use the object syntax:
 
 ### Available properties:
 
-translateX
+x
 
-translateY
+y
 
-translateZ
+z
 
 scale
 
@@ -72,7 +72,7 @@ Options can be specified for all properties:
 or each individually:
 
 ```html
-<div data-parallax='{"translateY":"70%","opacity":{"to":1,"from":0,"duration":"85%"},"duration":"150%"}'></div>
+<div data-parallax='{"y":"70%","opacity":{"to":1,"from":0,"duration":"85%"},"duration":"150%"}'></div>
 ```
 
 ### Available options:
