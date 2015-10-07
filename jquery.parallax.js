@@ -332,10 +332,10 @@
         ];
     }
     TransformMatrix.fromArray = function(array, result) {
+        result || (result = new TransformMatrix());
         if (array.length < 6) {
-            return new TransformMatrix();
+            return result;
         }
-        var result = result || new TransformMatrix();
         for (var i=0; i<array.length; i++) {
             array[i] = parseFloat(array[i]);
         }
@@ -351,7 +351,9 @@
         return result;
     };
     TransformMatrix.fromEl = function(el, result) {
-        if (!window.getComputedStyle) return;
+        if (!window.getComputedStyle) {
+            return result || new TransformMatrix();
+        }
         var style = getComputedStyle(el),
             transform = style.transform || style.webkitTransform || style.mozTransform;
         return TransformMatrix.fromArray(transform.replace(/^matrix(3d)?\((.*)\)$/, '$2').split(/, /), result);
