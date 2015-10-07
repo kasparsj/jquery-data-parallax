@@ -38,7 +38,13 @@ $("#selector").parallax({
 });
 ```
 
-#### Supported properties:
+### Supported properties:
+
+Property value can be specified as number or percentage (string).
+To specify a **from** value as well **to**, use object syntax:
+```javascript
+{"to":1,"from":0}
+```
 
 translateX
 
@@ -52,14 +58,26 @@ rotate
 
 opacity
 
-#### Available options:
+### Available options:
 
 Options can be specified for all properties, or each individually
 
-**start** - number | selector
+#### start
+**Type:** number or selector
+**Default:** the elements top offset
 
-**duration** - number | percentage string | callback function
+#### duration
+**Type:** number or percentage (string) or callback function
+**Default:** element top + height - start
 
-**trigger** - number | percentage string
+#### trigger
+**Type:** number or percentage (string)
+**Default:**: "100%"
 
-**axis** - "x" | "y"
+#### ease
+**Type:** function or string
+**Default:** "linear"
+
+#### axis
+**Type:** string ("x" or "y")
+**Default:** "y"

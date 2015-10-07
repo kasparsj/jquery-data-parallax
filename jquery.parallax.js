@@ -221,11 +221,6 @@
         return value;
     }
 
-    function easeInOutQuad(t, b, c, d) {
-        return c*t/d + b;
-        //return -c/2 * (Math.cos(Math.PI*t/d) - 1) + b;
-    }
-
     function Scene($el, options, maxValue) {
         this.$el = $el;
         this.axis = options.axis;
@@ -233,6 +228,13 @@
         this.to = covertOption(options.to, maxValue);
         this.trigger = convertToPx(options.trigger, options.axis);
         this.start = convertToObj(options.start) || options.start;
+        if (typeof options.ease == "function") {
+            this.ease = options.ease;
+        }
+        else {
+            typeof options.ease == "undefined" || (this.ease = $.easing[options.ease]);
+            typeof this.ease == "function" || (this.ease = $.easing.linear);
+        }
         this.started = false;
 
         if (typeof options.duration != "undefined") {
@@ -248,6 +250,9 @@
             };
         }
     }
+    Scene.STATE_BEFORE = 'before';
+    Scene.STATE_DURING = 'during';
+    Scene.STATE_AFTER = 'after';
     Scene.prototype = {
         updateDuration: function() {
             this.startPx = Math.max(getOffset(this.start, this.axis) - this.trigger, 0);
@@ -260,26 +265,29 @@
             if (!this.started) {
                 this.updateDuration();
             }
-            var needsUpdate = (this.state == 'during');
+            var needsUpdate = (this.state == Scene.STATE_DURING);
             if (scrollTop < this.startPx) {
-                this.state = 'before';
+                this.state = Scene.STATE_BEFORE;
             }
             else if (scrollTop <= (this.startPx + this.durationPx)) {
-                this.state = 'during';
+                this.state = Scene.STATE_DURING;
                 this.started = true;
                 needsUpdate = true;
             }
             else {
-                this.state = 'after';
+                this.state = Scene.STATE_AFTER;
             }
             return needsUpdate;
         },
         value: function() {
-            if (this.state == 'before') {
+            if (this.state == Scene.STATE_BEFORE) {
                 return this.from;
             }
-            else if (this.state == 'during') {
-                return easeInOutQuad(scrollTop-this.startPx, this.from, (this.to - this.from), this.durationPx);
+            else if (this.state == Scene.STATE_DURING) {
+                var posPx = scrollTop - this.startPx,
+                    percent = posPx / this.durationPx,
+                    aniPos = this.ease.call(this, percent);
+                return (this.to - this.from) * aniPos + this.from;
             }
             else {
                 return this.to;
