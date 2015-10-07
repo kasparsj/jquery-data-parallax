@@ -1,6 +1,6 @@
 {
   "name": "jquery-easy-parallax",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "homepage": "https://github.com/kasparsj/jquery-easy-parallax",
   "authors": [
     "Kaspars <kasparsj@gmail.com>"
@@ -8,7 +8,7 @@
   "description": "jQuery plugin for easy parallax effect",
   "main": "jquery.parallax.js",
   "dependencies": {
-    "jquery": "*",
+    "jquery": ">=1.9.0",
     "requestAnimationFrame.js": "latest"
   },
   "keywords": [
@@ -23,14 +23,14 @@
     "test",
     "tests"
   ],
-  "_release": "0.1.6",
+  "_release": "0.1.7",
   "_resolution": {
     "type": "version",
-    "tag": "0.1.6",
-    "commit": "5fc6180765ebf1330a19548d4b43c0b22f6fea97"
+    "tag": "0.1.7",
+    "commit": "4d35cc5bb385841dc103d949446cba5af3d89774"
   },
   "_source": "git://github.com/kasparsj/jquery-easy-parallax.git",
-  "_target": "~0.1.6",
+  "_target": "~0.1.7",
   "_originalSource": "jquery-easy-parallax",
   "_direct": true
 }

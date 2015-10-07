@@ -38,7 +38,16 @@ $("#selector").parallax({
 });
 ```
 
-#### Supported properties:
+### Properties
+
+All properties can be specified as **number** or **percentage** (string) or **object**.  
+To specify a **from** value as well **to**, use the object syntax:
+
+```html
+<div data-parallax='{"opacity":{"to":1,"from":0}}'></div>
+```
+
+### Available properties:
 
 translateX
 
@@ -52,14 +61,38 @@ rotate
 
 opacity
 
-#### Available options:
+### Options
 
-Options can be specified for all properties, or each individually
+Options can be specified for all properties:
 
-**start** - number | selector
+```html
+<div data-parallax='{"opacity":{"to":1,"from":0},"duration":"100%"}'></div>
+```
 
-**duration** - number | percentage string | callback function
+or each individually:
 
-**trigger** - number | percentage string
+```html
+<div data-parallax='{"translateY":"70%","opacity":{"to":1,"from":0,"duration":"85%"},"duration":"150%"}'></div>
+```
 
-**axis** - "x" | "y"
+### Available options:
+
+#### start
+**Type:** number or selector  
+**Default:** the elements top offset
+
+#### duration
+**Type:** number or percentage (string) or callback function  
+**Default:** element top + height - start
+
+#### trigger
+**Type:** number or percentage (string)  
+**Default:**: "100%"
+
+#### ease
+**Type:** function or string  
+**Default:** "linear"
+
+#### axis
+**Type:** string ("x" or "y")  
+**Default:** "y"
