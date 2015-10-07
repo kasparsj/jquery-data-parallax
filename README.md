@@ -3,7 +3,7 @@ jQuery plugin for easy parallax effect
 
 ## Examples
 
-[See Examples]http://kasparsj.github.io/jquery-easy-parallax/bower_components/jquery-easy-parallax/examples/
+[See Examples](http://kasparsj.github.io/jquery-easy-parallax/bower_components/jquery-easy-parallax/examples/)
 
 ## Availability
 
