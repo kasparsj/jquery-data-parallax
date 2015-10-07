@@ -1,9 +1,9 @@
 # jquery-easy-parallax
 jQuery plugin for easy parallax effect
 
-## Demo
+## Examples
 
-http://kasparsj.github.io/jquery-easy-parallax/
+http://kasparsj.github.io/jquery-easy-parallax/bower_components/jquery-easy-parallax/examples/
 
 ## Availability
 
