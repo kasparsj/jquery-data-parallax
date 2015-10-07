@@ -15,7 +15,7 @@ bower install jquery-easy-parallax
 
 ```html
 <script src="bower_components/jquery/dist/jquery.min.js"></script>
-<script src="bower_components/requestAnimationFrame.js/requestAnimationFrame.min.js"></script>
+<script src="bower_components/jquery.requestAnimationFrame/jquery.requestAnimationFrame.min.js"></script>
 <script src="bower_components/jquery-easy-parallax/jquery.parallax.min.js"></script>
 ```
 
