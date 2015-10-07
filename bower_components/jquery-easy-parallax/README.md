@@ -1,9 +1,9 @@
 # jquery-easy-parallax
 jQuery plugin for easy parallax effect
 
-## Demo
+## Examples
 
-http://kasparsj.github.io/jquery-easy-parallax/
+http://kasparsj.github.io/jquery-easy-parallax/bower_components/jquery-easy-parallax/examples/
 
 ## Availability
 
@@ -66,10 +66,10 @@ opacity
 Options can be specified for all properties:
 
 ```html
-<div data-parallax='{"opacity":{"to":1,"from":0},"duration":"100%"}'></div>
+<div data-parallax='{"y":"70%","opacity":{"to":1,"from":0},"duration":"150%"}'></div>
 ```
 
-or each individually:
+or (overridden for) each individually:
 
 ```html
 <div data-parallax='{"y":"70%","opacity":{"to":1,"from":0,"duration":"85%"},"duration":"150%"}'></div>
