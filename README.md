@@ -63,21 +63,21 @@ opacity
 Options can be specified for all properties, or each individually
 
 #### start
-**Type:** number or selector
+**Type:** number or selector  
 **Default:** the elements top offset
 
 #### duration
-**Type:** number or percentage (string) or callback function
+**Type:** number or percentage (string) or callback function  
 **Default:** element top + height - start
 
 #### trigger
-**Type:** number or percentage (string)
+**Type:** number or percentage (string)  
 **Default:**: "100%"
 
 #### ease
-**Type:** function or string
+**Type:** function or string  
 **Default:** "linear"
 
 #### axis
-**Type:** string ("x" or "y")
+**Type:** string ("x" or "y")  
 **Default:** "y"
