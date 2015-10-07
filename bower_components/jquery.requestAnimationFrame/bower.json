@@ -1,15 +1,17 @@
 {
-  "name": "requestAnimationFrame.js",
+  "name": "jquery.requestAnimationFrame",
   "version": "0.1.0",
-  "homepage": "https://github.com/kasparsj/requestAnimationFrame.js",
+  "homepage": "https://github.com/kasparsj/jquery.requestAnimationFrame",
   "authors": [
     "Kaspars <kasparsj@gmail.com>"
   ],
   "description": "requestAnimationFrame.js polyfill compiled from multiple sources",
-  "main": "requestAnimationFrame.js",
+  "main": "jquery.requestAnimationFrame.js",
   "keywords": [
     "requestAnimationFrame",
-    "polyfill"
+    "polyfill",
+    "jquery",
+    "animate"
   ],
   "license": "MIT",
   "ignore": [

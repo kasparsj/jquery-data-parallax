@@ -1,6 +1,6 @@
 {
   "name": "jquery-easy-parallax",
-  "version": "0.1.7",
+  "version": "0.1.0",
   "homepage": "https://github.com/kasparsj/jquery-easy-parallax",
   "authors": [
     "Kaspars <kasparsj@gmail.com>"
@@ -9,7 +9,7 @@
   "main": "jquery.parallax.js",
   "dependencies": {
     "jquery": ">=1.9.0",
-    "requestAnimationFrame.js": "latest"
+    "jquery.requestAnimationFrame": "latest"
   },
   "keywords": [
     "jQuery",
@@ -23,14 +23,14 @@
     "test",
     "tests"
   ],
-  "_release": "0.1.7",
+  "_release": "0.1.0",
   "_resolution": {
     "type": "version",
-    "tag": "0.1.7",
-    "commit": "4d35cc5bb385841dc103d949446cba5af3d89774"
+    "tag": "0.1.0",
+    "commit": "810d55cfe31e4b5b73d39ca237fd176b5d8813dd"
   },
   "_source": "git://github.com/kasparsj/jquery-easy-parallax.git",
-  "_target": "~0.1.7",
+  "_target": "~0.1.0",
   "_originalSource": "jquery-easy-parallax",
   "_direct": true
 }
