@@ -60,7 +60,7 @@
         for (var i=0; i<length; i++) {
             var options = $.extend(dataOptions[i] || {}, jsOptions[i] || {});
             typeof options.start == "undefined" || (options.start = convertToElement(options.start));
-            typeof options.start != "undefined" || (options.start = this);
+            typeof options.start != "undefined" || (options.start = this[0]);
             typeof options.trigger != "undefined" || (options.trigger = "100%");
             optionsArr.push(options);
         }
@@ -190,7 +190,7 @@
             do {
                 offset += value[axis === 'x' ? 'offsetLeft' : 'offsetTop'];
             } while (value = value.offsetParent);
-            value = offset;
+            return offset;
         }
         return value;
     }
@@ -199,11 +199,9 @@
         try {
             return obj instanceof HTMLElement;
         }
-        catch(e){
-            //Browsers not supporting W3 DOM2 don't have HTMLElement and
-            return (typeof obj==="object") &&
-                (obj.nodeType===1) && (typeof obj.style === "object") &&
-                (typeof obj.ownerDocument ==="object");
+        catch(e) {
+            return (typeof obj === "object") && (obj.nodeType === 1) &&
+                (typeof obj.style === "object") && (typeof obj.ownerDocument ==="object");
         }
     }
 
