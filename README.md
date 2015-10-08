@@ -82,11 +82,14 @@ or (overridden for) each individually:
 **Default:** the elements top offset
 
 #### duration
-**Type:** number or percentage (string) or callback function  
+**Type:** number or string (percentage or viewport units) or callback function  
 **Default:** element top + height - start
 
+Percentage is calculated against element dimensions rather than viewport: "50%" == 0.5 * $(el).width().  
+For viewport relative values, use viewport units: vh or vw.
+
 #### trigger
-**Type:** number or percentage (string)  
+**Type:** number or string (percentage)  
 **Default:**: "100%"
 
 #### ease

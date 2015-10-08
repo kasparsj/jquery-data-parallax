@@ -221,17 +221,22 @@
             return value;
         }
     }
-
-    function convertToPx(value, axis) {
-        if (axis === 'x') {
-            return covertOption(value, windowWidth);
-        }
-        return covertOption(value, windowHeight);
-    }
-
-    function covertOption(value, maxValue) {
-        if (typeof value === "string" && value.match(/%/g)) {
-            value = (parseFloat(value) / 100) * maxValue;
+    
+    function convertOption(value, maxValue) {
+        if (typeof value === "string") {
+            var percValue = parseFloat(value) / 100;
+            if (value.match(/%/g)) {
+                value = percValue * maxValue;
+            }
+            else {
+                var matches = value.match(/v(w|h)/g);
+                if (matches[0] === 'vw') {
+                    value = percValue * windowWidth;
+                }
+                else if (matches[1] == 'vh') {
+                    value = percValue * windowHeight;
+                }
+            }
         }
         else if (typeof value == "function") {
             value = value(maxValue);
@@ -242,9 +247,9 @@
     function Scene($el, options, maxValue) {
         this.$el = $el;
         this.axis = options.axis;
-        this.from = covertOption(options.from, maxValue);
-        this.to = covertOption(options.to, maxValue);
-        this.trigger = convertToPx(options.trigger, options.axis);
+        this.from = convertOption(options.from, maxValue);
+        this.to = convertOption(options.to, maxValue);
+        this.trigger = convertOption(options.trigger, options.axis === 'x' ? windowWidth : windowHeight);
         this.start = convertToElement(options.start) || options.start;
         if (typeof options.ease == "function") {
             this.ease = options.ease;
@@ -255,7 +260,8 @@
         }
 
         if (typeof options.duration != "undefined") {
-            var durationPx = convertToPx(options.duration, options.axis);
+            var maxDuration = options.axis === 'x' ? $el.outerWidth() : $el.outerHeight(),
+                durationPx = convertOption(options.duration, maxDuration);
             this.duration = function() {
                 return durationPx;
             };
