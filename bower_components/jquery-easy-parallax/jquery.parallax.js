@@ -59,7 +59,7 @@
         var length = Math.max(dataOptions.length, jsOptions.length);
         for (var i=0; i<length; i++) {
             var options = $.extend(dataOptions[i] || {}, jsOptions[i] || {});
-            typeof options.start == "undefined" || (options.start = convertToObj(options.start));
+            typeof options.start == "undefined" || (options.start = convertToElement(options.start));
             typeof options.start != "undefined" || (options.start = this);
             typeof options.trigger != "undefined" || (options.trigger = "100%");
             optionsArr.push(options);
@@ -146,19 +146,19 @@
             animation = animations[i];
             if (animation.transform) {
                 TransformMatrix.fromEl(this, animation.transform.matrix);
-                if (animation.x && animation.x.updateState()) {
+                if (animation.x && animation.x.update()) {
                     animation.transform.setTranslateX(animation.x.value());
                 }
-                if (animation.y && animation.y.updateState()) {
+                if (animation.y && animation.y.update()) {
                     animation.transform.setTranslateY(animation.y.value());
                 }
-                if (animation.z && animation.z.updateState()) {
+                if (animation.z && animation.z.update()) {
                     animation.transform.setTranslateZ(animation.z.value());
                 }
-                if (animation.scale && animation.scale.updateState()) {
+                if (animation.scale && animation.scale.update()) {
                     animation.transform.setScale(animation.scale.value());
                 }
-                if (animation.rotate && animation.rotate.updateState()) {
+                if (animation.rotate && animation.rotate.update()) {
                     animation.transform.setRotation(animation.rotate.value());
                 }
                 var transform = animation.transform.toString();
@@ -168,7 +168,7 @@
                 this.style['-o-transform'] = transform;
                 this.style.transform = transform;
             }
-            if (animation.opacity && animation.opacity.updateState()) {
+            if (animation.opacity && animation.opacity.update()) {
                 this.style.opacity = animation.opacity.value();
             }
         }
@@ -185,17 +185,33 @@
     }
 
     function getOffset(value, axis) {
-        if (value instanceof jQuery) {
-            value = value.offset()[axis === 'x' ? 'left' : 'top'];
+        if (isElement(value)) {
+            var offset = 0;
+            do {
+                offset += value[axis === 'x' ? 'offsetLeft' : 'offsetTop'];
+            } while (value = value.offsetParent);
+            value = offset;
         }
         return value;
     }
 
-    function convertToObj(value) {
+    function isElement(obj) {
+        try {
+            return obj instanceof HTMLElement;
+        }
+        catch(e){
+            //Browsers not supporting W3 DOM2 don't have HTMLElement and
+            return (typeof obj==="object") &&
+                (obj.nodeType===1) && (typeof obj.style === "object") &&
+                (typeof obj.ownerDocument ==="object");
+        }
+    }
+
+    function convertToElement(value) {
         if (typeof value === "string") {
             value = $(value);
             if (value.length) {
-                return value;
+                return value[0];
             }
             console.error("Invalid parallax start selector: "+value);
         }
@@ -227,7 +243,7 @@
         this.from = covertOption(options.from, maxValue);
         this.to = covertOption(options.to, maxValue);
         this.trigger = convertToPx(options.trigger, options.axis);
-        this.start = convertToObj(options.start) || options.start;
+        this.start = convertToElement(options.start) || options.start;
         if (typeof options.ease == "function") {
             this.ease = options.ease;
         }
@@ -235,7 +251,6 @@
             typeof options.ease == "undefined" || (this.ease = $.easing[options.ease]);
             typeof this.ease == "function" || (this.ease = $.easing.linear);
         }
-        this.started = false;
 
         if (typeof options.duration != "undefined") {
             var durationPx = convertToPx(options.duration, options.axis);
@@ -246,7 +261,7 @@
         else {
             var scene = this;
             this.duration = function() {
-                return (getOffset(scene.$el, options.axis) + scene.$el.outerHeight()) - scene.startPx;
+                return (getOffset(scene.$el[0], options.axis) + scene.$el.outerHeight()) - scene.startPx;
             };
         }
     }
@@ -254,30 +269,34 @@
     Scene.STATE_DURING = 'during';
     Scene.STATE_AFTER = 'after';
     Scene.prototype = {
-        updateDuration: function() {
+        update: function() {
+            // todo: limit the number of calls to these 2
+            this.updateStart();
+            this.updateDuration();
+            return (this.state == Scene.STATE_DURING) || (this.updateState() == Scene.STATE_DURING);
+        },
+        updateStart: function() {
             this.startPx = Math.max(getOffset(this.start, this.axis) - this.trigger, 0);
+            return this.startPx;
+        },
+        updateDuration: function() {
             this.durationPx = this.duration.call(this);
             if (this.durationPx < 0) {
                 console.error("Invalid parallax duration: "+this.durationPx);
             }
+            return this.durationPx;
         },
         updateState: function() {
-            if (!this.started) {
-                this.updateDuration();
-            }
-            var needsUpdate = (this.state == Scene.STATE_DURING);
             if (scrollTop < this.startPx) {
                 this.state = Scene.STATE_BEFORE;
             }
             else if (scrollTop <= (this.startPx + this.durationPx)) {
                 this.state = Scene.STATE_DURING;
-                this.started = true;
-                needsUpdate = true;
             }
             else {
                 this.state = Scene.STATE_AFTER;
             }
-            return needsUpdate;
+            return this.state;
         },
         value: function() {
             if (this.state == Scene.STATE_BEFORE) {
