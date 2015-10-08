@@ -1,5 +1,5 @@
 # jquery-easy-parallax
-jQuery plugin for easy parallax effect
+jQuery plugin for easy parallax effect.
 
 ## Examples
 
@@ -96,3 +96,6 @@ or (overridden for) each individually:
 #### axis
 **Type:** string ("x" or "y")  
 **Default:** "y"
+
+## Credits
+This plugin was inspired from [Parallax Done Right](https://medium.com/@dhg/parallax-done-right-82ced812e61c) and [Perfecting Parallax Scrolling](https://github.com/Form5/parallax)
