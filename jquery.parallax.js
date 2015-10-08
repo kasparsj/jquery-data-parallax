@@ -48,8 +48,12 @@
 
     function parseOptions() {
         var optionsArr = [],
-            dataOptions = this.data("parallax") || {},
-            jsOptions = this.data("parallax-js") || {};
+            dataOptions = this.data("parallax"),
+            jsOptions = this.data("parallax-js");
+        typeof dataOptions != "undefined" || (dataOptions = {});
+        typeof dataOptions == "object" || console.error("Unable to parse data-parallax attribute");
+        typeof jsOptions != "undefined" || (jsOptions = {});
+        typeof jsOptions == "object" || console.error("Unrecognized options passed to $.fn.parallax");
         if (!Array.isArray(dataOptions)) {
             dataOptions = [dataOptions];
         }
