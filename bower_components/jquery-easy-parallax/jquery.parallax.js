@@ -48,8 +48,12 @@
 
     function parseOptions() {
         var optionsArr = [],
-            dataOptions = this.data("parallax") || {},
-            jsOptions = this.data("parallax-js") || {};
+            dataOptions = this.data("parallax"),
+            jsOptions = this.data("parallax-js");
+        typeof dataOptions != "undefined" || (dataOptions = {});
+        typeof dataOptions == "object" || console.error("Unable to parse data-parallax attribute");
+        typeof jsOptions != "undefined" || (jsOptions = {});
+        typeof jsOptions == "object" || console.error("Unrecognized options passed to $.fn.parallax");
         if (!Array.isArray(dataOptions)) {
             dataOptions = [dataOptions];
         }
@@ -93,7 +97,7 @@
                 animation.z = new Scene($this, zOptions, windowHeight);
             }
             if (typeof options.scale != "undefined") {
-                var scaleOptions = mergeOptions(options.scale, globalOptions, 1);
+                var scaleOptions = mergeOptions(options.scale, globalOptions);
                 animation.scale = new Scene($this, scaleOptions, 1);
             }
             if (typeof options.rotate != "undefined") {
@@ -105,7 +109,7 @@
             }
 
             if (typeof options.opacity != "undefined") {
-                var opacityOptions = mergeOptions(options.opacity, globalOptions, 1);
+                var opacityOptions = mergeOptions(options.opacity, globalOptions);
                 animation.opacity = new Scene($this, opacityOptions, 1);
             }
             animations.push(animation);
@@ -146,20 +150,25 @@
             animation = animations[i];
             if (animation.transform) {
                 TransformMatrix.fromEl(this, animation.transform.matrix);
-                if (animation.x && animation.x.update()) {
-                    animation.transform.setTranslateX(animation.x.value());
+                if (animation.x && animation.x.needsUpdate()) {
+                    var newX = animation.x.getValue(animation.transform.matrix.getTranslateX());
+                    animation.transform.setTranslateX(newX);
                 }
-                if (animation.y && animation.y.update()) {
-                    animation.transform.setTranslateY(animation.y.value());
+                if (animation.y && animation.y.needsUpdate()) {
+                    var newY = animation.y.getValue(animation.transform.matrix.getTranslateY());
+                    animation.transform.setTranslateY(newY);
                 }
-                if (animation.z && animation.z.update()) {
-                    animation.transform.setTranslateZ(animation.z.value());
+                if (animation.z && animation.z.needsUpdate()) {
+                    var newZ = animation.z.getValue(animation.transform.matrix.getTranslateZ());
+                    animation.transform.setTranslateZ(newZ);
                 }
-                if (animation.scale && animation.scale.update()) {
-                    animation.transform.setScale(animation.scale.value());
+                if (animation.scale && animation.scale.needsUpdate()) {
+                    var newScale = animation.scale.getValue(animation.transform.matrix.getScale());
+                    animation.transform.setScale(newScale);
                 }
-                if (animation.rotate && animation.rotate.update()) {
-                    animation.transform.setRotation(animation.rotate.value());
+                if (animation.rotate && animation.rotate.needsUpdate()) {
+                    var newRotation = animation.rotate.getValue(animation.transform.matrix.getRotation());
+                    animation.transform.setRotation(newRotation);
                 }
                 var transform = animation.transform.toString();
                 this.style['-webkit-transform'] = transform;
@@ -168,18 +177,16 @@
                 this.style['-o-transform'] = transform;
                 this.style.transform = transform;
             }
-            if (animation.opacity && animation.opacity.update()) {
-                this.style.opacity = animation.opacity.value();
+            if (animation.opacity && animation.opacity.needsUpdate()) {
+                var newOpacity = animation.opacity.getValue(this.style.opacity);
+                this.style.opacity = newOpacity;
             }
         }
     }
 
-    function mergeOptions(options, globalOptions, defaultFrom) {
+    function mergeOptions(options, globalOptions) {
         if (typeof options != "object") {
             options = {to: options};
-        }
-        if (typeof options.from == "undefined") {
-            options.from = defaultFrom || 0;
         }
         return $.extend({}, globalOptions, options);
     }
@@ -217,17 +224,22 @@
             return value;
         }
     }
-
-    function convertToPx(value, axis) {
-        if (axis === 'x') {
-            return covertOption(value, windowWidth);
-        }
-        return covertOption(value, windowHeight);
-    }
-
-    function covertOption(value, maxValue) {
-        if (typeof value === "string" && value.match(/%/g)) {
-            value = (parseFloat(value) / 100) * maxValue;
+    
+    function convertOption(value, maxValue) {
+        if (typeof value === "string") {
+            var percValue = parseFloat(value) / 100;
+            if (value.match(/%/g)) {
+                value = percValue * maxValue;
+            }
+            else {
+                var matches = value.match(/v(w|h)/g);
+                if (matches[0] === 'vw') {
+                    value = percValue * windowWidth;
+                }
+                else if (matches[1] == 'vh') {
+                    value = percValue * windowHeight;
+                }
+            }
         }
         else if (typeof value == "function") {
             value = value(maxValue);
@@ -238,9 +250,9 @@
     function Scene($el, options, maxValue) {
         this.$el = $el;
         this.axis = options.axis;
-        this.from = covertOption(options.from, maxValue);
-        this.to = covertOption(options.to, maxValue);
-        this.trigger = convertToPx(options.trigger, options.axis);
+        this.from = convertOption(options.from, maxValue);
+        this.to = convertOption(options.to, maxValue);
+        this.trigger = convertOption(options.trigger, options.axis === 'x' ? windowWidth : windowHeight);
         this.start = convertToElement(options.start) || options.start;
         if (typeof options.ease == "function") {
             this.ease = options.ease;
@@ -251,7 +263,8 @@
         }
 
         if (typeof options.duration != "undefined") {
-            var durationPx = convertToPx(options.duration, options.axis);
+            var maxDuration = options.axis === 'x' ? $el.outerWidth() : $el.outerHeight(),
+                durationPx = convertOption(options.duration, maxDuration);
             this.duration = function() {
                 return durationPx;
             };
@@ -267,22 +280,21 @@
     Scene.STATE_DURING = 'during';
     Scene.STATE_AFTER = 'after';
     Scene.prototype = {
-        update: function() {
-            // todo: limit the number of calls to these 2
+        needsUpdate: function() {
             this.updateStart();
             this.updateDuration();
-            return (this.state == Scene.STATE_DURING) || (this.updateState() == Scene.STATE_DURING);
+            var prevState = this.state;
+            this.updateState();
+            return (prevState == Scene.STATE_DURING) || (this.state == Scene.STATE_DURING);
         },
         updateStart: function() {
             this.startPx = Math.max(getOffset(this.start, this.axis) - this.trigger, 0);
-            return this.startPx;
         },
         updateDuration: function() {
             this.durationPx = this.duration.call(this);
             if (this.durationPx < 0) {
                 console.error("Invalid parallax duration: "+this.durationPx);
             }
-            return this.durationPx;
         },
         updateState: function() {
             if (scrollTop < this.startPx) {
@@ -294,9 +306,9 @@
             else {
                 this.state = Scene.STATE_AFTER;
             }
-            return this.state;
         },
-        value: function() {
+        getValue: function(value) {
+            typeof this.from != "undefined" || (this.from = value);
             if (this.state == Scene.STATE_BEFORE) {
                 return this.from;
             }
