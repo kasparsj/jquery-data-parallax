@@ -41,7 +41,7 @@ $("#selector").parallax({
 ### Properties
 
 All properties can be specified as **number** or **percentage** (string) or **object**.  
-Using the object syntax you can pass in a **from** value (optional), as well as override global options:
+Using the object syntax you can explicitly pass in a **from** value (optional), as well as override global options:
 
 ```html
 <div data-parallax='{"opacity":{"to":1,"from":0.5,"duration":100},"translateY":"50%","duration":200}'></div>
