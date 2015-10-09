@@ -281,7 +281,9 @@
             // todo: limit the number of calls to these 2
             this.updateStart();
             this.updateDuration();
-            return (this.state == Scene.STATE_DURING) || (this.updateState() == Scene.STATE_DURING);
+            var prevState = this.state;
+            this.updateState();
+            return (prevState == Scene.STATE_DURING) || (this.state == Scene.STATE_DURING);
         },
         updateStart: function() {
             this.startPx = Math.max(getOffset(this.start, this.axis) - this.trigger, 0);
