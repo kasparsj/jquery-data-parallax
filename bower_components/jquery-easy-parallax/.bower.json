@@ -22,13 +22,13 @@
     "test",
     "tests"
   ],
-  "_release": "cc2a316",
+  "_release": "6becefb",
   "_resolution": {
     "type": "commit",
-    "commit": "cc2a316"
+    "commit": "6becefb"
   },
   "_source": "git://github.com/kasparsj/jquery-easy-parallax.git",
-  "_target": "cc2a316",
+  "_target": "6becefb",
   "_originalSource": "jquery-easy-parallax",
   "_direct": true
 }
