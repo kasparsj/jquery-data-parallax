@@ -238,7 +238,7 @@
                 if (matches[0] === 'vw') {
                     value = percValue * windowWidth;
                 }
-                else if (matches[1] == 'vh') {
+                else if (matches[0] === 'vh') {
                     value = percValue * windowHeight;
                 }
             }
