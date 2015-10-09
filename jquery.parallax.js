@@ -145,11 +145,13 @@
 
     function animateElement(idx) {
         var animations = animationsArr[idx],
-            animation;
+            animation,
+            style;
+        typeof window.getComputedStyle != "function" || (style = getComputedStyle(this));
         for (var i=0, len=animations.length; i<len; i++) {
             animation = animations[i];
             if (animation.transform) {
-                TransformMatrix.fromEl(this, animation.transform.matrix);
+                TransformMatrix.fromStyle(style, animation.transform.matrix);
                 if (animation.x && animation.x.needsUpdate()) {
                     var newX = animation.x.getValue(animation.transform.matrix.getTranslateX());
                     animation.transform.setTranslateX(newX);
@@ -178,7 +180,7 @@
                 this.style.transform = transform;
             }
             if (animation.opacity && animation.opacity.needsUpdate()) {
-                var newOpacity = animation.opacity.getValue(this.style.opacity);
+                var newOpacity = animation.opacity.getValue(parseFloat(style.opacity));
                 this.style.opacity = newOpacity;
             }
         }
@@ -224,7 +226,7 @@
             return value;
         }
     }
-    
+
     function convertOption(value, maxValue) {
         if (typeof value === "string") {
             var percValue = parseFloat(value) / 100;
@@ -387,12 +389,11 @@
         result.matrix = array;
         return result;
     };
-    TransformMatrix.fromEl = function(el, result) {
-        if (!window.getComputedStyle) {
+    TransformMatrix.fromStyle = function(style, result) {
+        if (!style) {
             return result || new TransformMatrix();
         }
-        var style = getComputedStyle(el),
-            transform = style.transform || style.webkitTransform || style.mozTransform;
+        var transform = style.transform || style.webkitTransform || style.mozTransform;
         return TransformMatrix.fromArray(transform.replace(/^matrix(3d)?\((.*)\)$/, '$2').split(/, /), result);
     };
     TransformMatrix.prototype = {
