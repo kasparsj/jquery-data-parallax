@@ -1,12 +1,12 @@
 {
-  "name": "jquery-easy-parallax",
+  "name": "jquery-data-parallax",
   "version": "0.1.4",
-  "homepage": "https://github.com/kasparsj/jquery-easy-parallax",
+  "homepage": "https://github.com/kasparsj/jquery-data-parallax",
   "authors": [
     "Kaspars <kasparsj@gmail.com>"
   ],
-  "description": "jQuery plugin for easy parallax effect",
-  "main": "jquery.parallax.js",
+  "description": "jQuery plugin for setting up parallax effects easily using data attributes.",
+  "main": "jquery.data-parallax.js",
   "dependencies": {
     "jquery": ">=1.9.0",
     "jquery.requestAnimationFrame": "latest"

@@ -1,14 +1,14 @@
-# jquery-easy-parallax
-jQuery plugin for easy parallax effect.
+# [data-parallax]
+jQuery plugin for setting up parallax effects easily using data attributes.
 
 ## Examples
 
-[See Examples](http://kasparsj.github.io/jquery-easy-parallax/bower_components/jquery-easy-parallax/examples/)
+[See Examples](http://kasparsj.github.io/jquery-data-parallax/bower_components/jquery-data-parallax/examples/)
 
 ## Availability
 
 ```bash
-bower install jquery-easy-parallax
+bower install jquery-data-parallax
 ```
 
 ## Installation
@@ -16,7 +16,7 @@ bower install jquery-easy-parallax
 ```html
 <script src="bower_components/jquery/dist/jquery.min.js"></script>
 <script src="bower_components/jquery.requestAnimationFrame/jquery.requestAnimationFrame.min.js"></script>
-<script src="bower_components/jquery-easy-parallax/jquery.parallax.min.js"></script>
+<script src="bower_components/jquery-data-parallax/jquery.data-parallax.min.js"></script>
 ```
 
 ## Usage
