@@ -41,10 +41,10 @@ $("#selector").parallax({
 ### Properties
 
 All properties can be specified as **number** or **percentage** (string) or **object**.  
-To specify a **from** value as well **to**, use the object syntax:
+Using the object syntax you can pass in a **from** value (optional), as well as override global options:
 
 ```html
-<div data-parallax='{"opacity":{"to":1,"from":0}}'></div>
+<div data-parallax='{"opacity":{"to":1,"from":0.5,"duration":100},"translateY":"50%","duration":200}'></div>
 ```
 
 ### Available properties:
@@ -66,13 +66,13 @@ opacity
 Options can be specified for all properties:
 
 ```html
-<div data-parallax='{"y":"70%","opacity":{"to":1,"from":0},"duration":"150%"}'></div>
+<div data-parallax='{"y":"70%","opacity":1,"duration":"150%"}'></div>
 ```
 
-or (overridden for) each individually:
+as well as (overridden) for each individually:
 
 ```html
-<div data-parallax='{"y":"70%","opacity":{"to":1,"from":0,"duration":"85%"},"duration":"150%"}'></div>
+<div data-parallax='{"y":"70%","opacity":{"to":1,"duration":"85%"},"duration":"150%"}'></div>
 ```
 
 ### Available options:

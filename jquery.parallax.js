@@ -97,7 +97,7 @@
                 animation.z = new Scene($this, zOptions, windowHeight);
             }
             if (typeof options.scale != "undefined") {
-                var scaleOptions = mergeOptions(options.scale, globalOptions, 1);
+                var scaleOptions = mergeOptions(options.scale, globalOptions);
                 animation.scale = new Scene($this, scaleOptions, 1);
             }
             if (typeof options.rotate != "undefined") {
@@ -109,7 +109,7 @@
             }
 
             if (typeof options.opacity != "undefined") {
-                var opacityOptions = mergeOptions(options.opacity, globalOptions, 1);
+                var opacityOptions = mergeOptions(options.opacity, globalOptions);
                 animation.opacity = new Scene($this, opacityOptions, 1);
             }
             animations.push(animation);
@@ -150,20 +150,25 @@
             animation = animations[i];
             if (animation.transform) {
                 TransformMatrix.fromEl(this, animation.transform.matrix);
-                if (animation.x && animation.x.update()) {
-                    animation.transform.setTranslateX(animation.x.value());
+                if (animation.x && animation.x.needsUpdate()) {
+                    var newX = animation.x.getValue(animation.transform.matrix.getTranslateX());
+                    animation.transform.setTranslateX(newX);
                 }
-                if (animation.y && animation.y.update()) {
-                    animation.transform.setTranslateY(animation.y.value());
+                if (animation.y && animation.y.needsUpdate()) {
+                    var newY = animation.y.getValue(animation.transform.matrix.getTranslateY());
+                    animation.transform.setTranslateY(newY);
                 }
-                if (animation.z && animation.z.update()) {
-                    animation.transform.setTranslateZ(animation.z.value());
+                if (animation.z && animation.z.needsUpdate()) {
+                    var newZ = animation.z.getValue(animation.transform.matrix.getTranslateZ());
+                    animation.transform.setTranslateZ(newZ);
                 }
-                if (animation.scale && animation.scale.update()) {
-                    animation.transform.setScale(animation.scale.value());
+                if (animation.scale && animation.scale.needsUpdate()) {
+                    var newScale = animation.scale.getValue(animation.transform.matrix.getScale());
+                    animation.transform.setScale(newScale);
                 }
-                if (animation.rotate && animation.rotate.update()) {
-                    animation.transform.setRotation(animation.rotate.value());
+                if (animation.rotate && animation.rotate.needsUpdate()) {
+                    var newRotation = animation.rotate.getValue(animation.transform.matrix.getRotation());
+                    animation.transform.setRotation(newRotation);
                 }
                 var transform = animation.transform.toString();
                 this.style['-webkit-transform'] = transform;
@@ -172,18 +177,16 @@
                 this.style['-o-transform'] = transform;
                 this.style.transform = transform;
             }
-            if (animation.opacity && animation.opacity.update()) {
-                this.style.opacity = animation.opacity.value();
+            if (animation.opacity && animation.opacity.needsUpdate()) {
+                var newOpacity = animation.opacity.getValue(this.style.opacity);
+                this.style.opacity = newOpacity;
             }
         }
     }
 
-    function mergeOptions(options, globalOptions, defaultFrom) {
+    function mergeOptions(options, globalOptions) {
         if (typeof options != "object") {
             options = {to: options};
-        }
-        if (typeof options.from == "undefined") {
-            options.from = defaultFrom || 0;
         }
         return $.extend({}, globalOptions, options);
     }
@@ -277,8 +280,7 @@
     Scene.STATE_DURING = 'during';
     Scene.STATE_AFTER = 'after';
     Scene.prototype = {
-        update: function() {
-            // todo: limit the number of calls to these 2
+        needsUpdate: function() {
             this.updateStart();
             this.updateDuration();
             var prevState = this.state;
@@ -287,14 +289,12 @@
         },
         updateStart: function() {
             this.startPx = Math.max(getOffset(this.start, this.axis) - this.trigger, 0);
-            return this.startPx;
         },
         updateDuration: function() {
             this.durationPx = this.duration.call(this);
             if (this.durationPx < 0) {
                 console.error("Invalid parallax duration: "+this.durationPx);
             }
-            return this.durationPx;
         },
         updateState: function() {
             if (scrollTop < this.startPx) {
@@ -306,9 +306,9 @@
             else {
                 this.state = Scene.STATE_AFTER;
             }
-            return this.state;
         },
-        value: function() {
+        getValue: function(value) {
+            typeof this.from != "undefined" || (this.from = value);
             if (this.state == Scene.STATE_BEFORE) {
                 return this.from;
             }
