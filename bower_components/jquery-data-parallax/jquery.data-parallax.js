@@ -6,7 +6,6 @@
         elementsArr,
         animationsArr,
         scrollTop,
-        len,
         windowHeight = $window.height(),
         windowWidth = $window.width(),
         scrollTicking = false,
@@ -35,12 +34,12 @@
                         $elements = this;
                         window.onresize = onResize;
                         window.onscroll = onScroll;
-                        //setInterval(onScroll, 10);
                     }
                     else {
                         $elements.add(this);
                     }
                     elementsArr = $elements.toArray();
+                    onScroll();
                 }
         }
         return this;
@@ -60,8 +59,7 @@
         if (!Array.isArray(jsOptions)) {
             jsOptions = [jsOptions];
         }
-        var length = Math.max(dataOptions.length, jsOptions.length);
-        for (var i=0; i<length; i++) {
+        for (var i= 0, len = Math.max(dataOptions.length, jsOptions.length); i<len; i++) {
             var options = $.extend(dataOptions[i] || {}, jsOptions[i] || {});
             typeof options.start == "undefined" || (options.start = convertToElement(options.start));
             typeof options.start != "undefined" || (options.start = this[0]);
@@ -75,7 +73,7 @@
         var $this = $(this),
             animations = [],
             optionsArr = parseOptions.call($this);
-        for (var i=0; i<optionsArr.length; i++) {
+        for (var i= 0, len = optionsArr.length; i<len; i++) {
             var options = optionsArr[i],
                 globalOptions = {
                     axis: options.axis,
@@ -83,42 +81,42 @@
                     trigger: options.trigger,
                     duration: options.duration
                 },
-                animation = {};
+                animation = {},
+                transformOptions = {};
             if (typeof options.x != "undefined") {
-                var xOptions = mergeOptions(options.x, globalOptions);
-                animation.x = new Scene($this, xOptions, windowHeight);
+                transformOptions.x = mergeOptions(options.x, globalOptions);
             }
             if (typeof options.y != "undefined") {
-                var yOptions = mergeOptions(options.y, globalOptions);
-                animation.y = new Scene($this, yOptions, windowHeight);
+                transformOptions.y = mergeOptions(options.y, globalOptions);
             }
             if (typeof options.z != "undefined") {
-                var zOptions = mergeOptions(options.z, globalOptions);
-                animation.z = new Scene($this, zOptions, windowHeight);
+                transformOptions.z = mergeOptions(options.z, globalOptions);
             }
             if (typeof options.scale != "undefined") {
-                var scaleOptions = mergeOptions(options.scale, globalOptions);
-                animation.scale = new Scene($this, scaleOptions, 1);
+                transformOptions.scale = mergeOptions(options.scale, globalOptions);
             }
             if (typeof options.rotate != "undefined") {
-                var rotateOptions = mergeOptions(options.rotate, globalOptions);
-                animation.rotate = new Scene($this, rotateOptions, 360);
+                transformOptions.rotate = mergeOptions(options.rotate, globalOptions);
             }
-            if (animation.x || animation.y || animation.z || animation.scale || animation.rotate) {
-                animation.transform = true;
+            if (transformOptions.x || transformOptions.y || transformOptions.z || transformOptions.scale || transformOptions.rotate) {
+                animation.transform = new TransformContainer($this, transformOptions);
             }
 
+            if (typeof options.opacity != "undefined") {
+                var opacityOptions = mergeOptions(options.opacity, globalOptions);
+                animation.opacity = new StyleScene($this, opacityOptions, 'opacity', 1);
+            }
             if (typeof options.color != "undefined") {
                 var colorOptions = mergeOptions(options.color, globalOptions);
-                animation.color = new Scene($this, colorOptions, 0xffffff);
+                animation.color = new ColorScene($this, colorOptions, 'color', 0xffffff);
             }
             if (typeof options.backgroundColor != "undefined") {
                 var bgColorOptions = mergeOptions(options.backgroundColor, globalOptions);
-                animation.bgColor = new Scene($this, bgColorOptions, 0xffffff);
+                animation.bgColor = new ColorScene($this, bgColorOptions, 'backgroundColor', 0xffffff);
             }
-            if (typeof options.opacity != "undefined") {
-                var opacityOptions = mergeOptions(options.opacity, globalOptions);
-                animation.opacity = new Scene($this, opacityOptions, 1);
+            if (typeof options.pin != "undefined") {
+                var pinOptions = mergeOptions(options.pin, globalOptions);
+                animation.pin = new PinScene($this, pinOptions);
             }
             animations.push(animation);
         }
@@ -159,51 +157,19 @@
         for (var i=0, len=animations.length; i<len; i++) {
             animation = animations[i];
             if (animation.transform) {
-                animation.transform = new Transform(TransformMatrix.fromStyle(style));
-                if (animation.x && animation.x.needsUpdate()) {
-                    var newX = animation.x.getValue(animation.transform.matrix.getTranslateX());
-                    animation.transform.setTranslateX(newX);
-                }
-                if (animation.y && animation.y.needsUpdate()) {
-                    var newY = animation.y.getValue(animation.transform.matrix.getTranslateY());
-                    animation.transform.setTranslateY(newY);
-                }
-                if (animation.z && animation.z.needsUpdate()) {
-                    var newZ = animation.z.getValue(animation.transform.matrix.getTranslateZ());
-                    animation.transform.setTranslateZ(newZ);
-                }
-                if (animation.scale && animation.scale.needsUpdate()) {
-                    var newScale = animation.scale.getValue(animation.transform.matrix.getScale());
-                    animation.transform.setScale(newScale);
-                }
-                if (animation.rotate && animation.rotate.needsUpdate()) {
-                    var newRotation = animation.rotate.getValue(animation.transform.matrix.getRotation());
-                    animation.transform.setRotation(newRotation);
-                }
-                if (animation.transform.isSet()) {
-                    var transform = animation.transform.toString();
-                    this.style['-webkit-transform'] = transform;
-                    this.style['-moz-transform'] = transform;
-                    this.style['-ms-transform'] = transform;
-                    this.style['-o-transform'] = transform;
-                    this.style.transform = transform;
-                }
+                animation.transform.update(style);
             }
             if (animation.color && animation.color.needsUpdate()) {
-                var fromColor = RGBColor.fromString(animation.color.getFrom(style.color)),
-                    toColor = RGBColor.fromString(animation.color.to);
-                fromColor.interpolate(toColor, animation.color.getProgress());
-                this.style.color = fromColor.toString();
+                animation.color.update(style);
             }
             if (animation.bgColor && animation.bgColor.needsUpdate()) {
-                var fromColor = RGBColor.fromString(animation.bgColor.getFrom(style.backgroundColor)),
-                    toColor = RGBColor.fromString(animation.bgColor.to);
-                fromColor.interpolate(toColor, animation.bgColor.getProgress());
-                this.style.backgroundColor = fromColor.toString();
+                animation.bgColor.update(style);
             }
             if (animation.opacity && animation.opacity.needsUpdate()) {
-                var newOpacity = animation.opacity.getValue(parseFloat(style.opacity));
-                this.style.opacity = newOpacity;
+                animation.opacity.update(style);
+            }
+            if (animation.pin && animation.pin.needsUpdate()) {
+                animation.pin.update(style);
             }
         }
     }
@@ -272,11 +238,11 @@
         return (to - from) * progress + from;
     }
 
-    function Scene($el, options, maxValue) {
+    function Scene($el, options) {
         this.$el = $el;
         this.axis = options.axis;
-        this.from = convertOption(options.from, maxValue);
-        this.to = convertOption(options.to, maxValue);
+        this.from = options.from;
+        this.to = options.to;
         this.trigger = convertOption(options.trigger, options.axis === 'x' ? windowWidth : windowHeight);
         this.start = convertToElement(options.start) || options.start;
         if (typeof options.ease == "function") {
@@ -308,9 +274,14 @@
         needsUpdate: function() {
             this.updateStart();
             this.updateDuration();
-            var prevState = this.state;
             this.updateState();
-            return (prevState == Scene.STATE_DURING) || (this.state == Scene.STATE_DURING);
+            return this._needsUpdate();
+        },
+        _needsUpdate: function() {
+            return this.prevState === Scene.STATE_DURING || 
+                this.state === Scene.STATE_DURING ||
+                (typeof this.prevState === "undefined" && 
+                    (this.state === Scene.STATE_AFTER || typeof this.from != "undefined"));
         },
         updateStart: function() {
             this.startPx = Math.max(getOffset(this.start, this.axis) - this.trigger, 0);
@@ -322,6 +293,7 @@
             }
         },
         updateState: function() {
+            this.prevState = this.state;
             if (scrollTop < this.startPx) {
                 this.state = Scene.STATE_BEFORE;
             }
@@ -333,10 +305,10 @@
             }
         },
         getProgress: function() {
-            if (this.state == Scene.STATE_BEFORE) {
+            if (this.state === Scene.STATE_BEFORE) {
                 return 0;
             }
-            else if (this.state == Scene.STATE_DURING) {
+            else if (this.state === Scene.STATE_DURING) {
                 var posPx = scrollTop - this.startPx,
                     percent = posPx / this.durationPx,
                     progress = this.ease.call(this, percent);
@@ -346,14 +318,147 @@
                 return 1;
             }
         },
-        getFrom: function(defaultValue) {
+        update: function(style) {
+            this._setFrom(this._getOldValue(style));
+            this._setValue(this._getNewValue(), style);
+        },
+        _setFrom: function(defaultValue) {
             typeof this.from != "undefined" || (this.from = defaultValue);
+        }
+    };
+
+    function ScalarScene($el, options, maxValue) {
+        options.from = convertOption(options.from, maxValue);
+        options.to = convertOption(options.to, maxValue);
+        Scene.call(this, $el, options);
+    }
+    ScalarScene.prototype = $.extend(Object.create(Scene.prototype), {
+        _getNewValue: function() {
+            return interpolate(this.from, this.to, this.getProgress());
+        }
+    });
+    
+    function StyleScene($el, options, styleName, maxValue) {
+        this.styleName = styleName;
+        ScalarScene.call(this, $el, options, maxValue);
+    }
+    StyleScene.prototype = $.extend(Object.create(ScalarScene.prototype), {
+        _getOldValue: function(style) {
+            return parseFloat(style[this.styleName]);
+        },
+        _setValue: function(newValue) {
+            this.$el[0].style[this.styleName] = newValue;
+        }
+    });
+    
+    function ColorScene($el, options, styleName, maxValue) {
+        StyleScene.call(this, $el, options, styleName, maxValue);
+    }
+    ColorScene.prototype = $.extend(Object.create(StyleScene.prototype), {
+        _getOldValue: function(style) {
+            return style[this.styleName];
+        },
+        _getNewValue: function() {
+            var fromColor = RGBColor.fromString(this.from),
+                toColor = RGBColor.fromString(this.to);
+            fromColor.interpolate(toColor, this.getProgress());
+            return fromColor.toString();
+        }
+    });
+
+    function PinScene($el, options) {
+        options.to = convertToElement(options.to) || $el[0];
+        Scene.call(this, $el, options);
+    }
+    PinScene.prototype = $.extend(Object.create(Scene.prototype), {
+        _needsUpdate: function() {
+            return this.prevState != this.state;
+        },
+        _getOldValue: function(style) {
+            var toStyle = getComputedStyle(this.to);
+            return {
+                position: toStyle.position,
+                top: toStyle.top,
+                left: toStyle.left
+            };
+        },
+        _getNewValue: function() {
+            if (this.state == Scene.STATE_DURING) {
+                var top = parseFloat(this.from.top),
+                    left = parseFloat(this.from.left);
+                return {
+                    position: 'fixed',
+                    top: isNaN(top) ? 0 : top,
+                    left: isNaN(left) ? 0 : left
+                };
+            }
             return this.from;
         },
-        getValue: function(value, progress) {
-            this.getFrom(value);
-            typeof progress != "undefined" || (progress = this.getProgress());
-            return interpolate(this.from, this.to, progress);
+        _setValue: function(newValue) {
+            this.to.style.position = newValue.position;
+            this.to.style.top = newValue.top;
+            this.to.style.left = newValue.left;
+        }
+    });
+    
+    function TransformScene($el, options, propName, maxValue) {
+        this.propName = propName;
+        ScalarScene.call(this, $el, options, maxValue);
+    }
+    TransformScene.prototype = $.extend(Object.create(ScalarScene.prototype), {
+        _getOldValue: function(transform) {
+            return transform.matrix[this.propName]();
+        },
+        _setValue: function(newValue, transform) {
+            transform[this.propName] = newValue;
+        }
+    });
+
+    function TransformContainer($el, options) {
+        this.$el = $el;
+        if (options.x) {
+            this.x = new TransformScene($el, options.x, 'translateX', windowHeight);
+        }
+        if (options.y) {
+            this.y = new TransformScene($el, options.y, 'translateY', windowHeight);
+        }
+        if (options.z) {
+            this.z = new TransformScene($el, options.z, 'translateZ', windowHeight);
+        }
+        if (options.scale) {
+            this.scale = new TransformScene($el, options.scale, 'scale', 1);
+        }
+        if (options.rotate) {
+            this.rotate = new TransformScene($el, options.rotate, 'rotate', 360);
+        }
+    }
+    TransformContainer.prototype = {
+        update: function(style) {
+            var transform = new Transform(TransformMatrix.fromStyle(style));
+            if (this.x && this.x.needsUpdate()) {
+                this.x.update(transform);
+            }
+            if (this.y && this.y.needsUpdate()) {
+                this.y.update(transform);
+            }
+            if (this.z && this.z.needsUpdate()) {
+                this.z.update(transform);
+            }
+            if (this.scale && this.scale.needsUpdate()) {
+                this.scale.update(transform);
+            }
+            if (this.rotate && this.rotate.needsUpdate()) {
+                this.rotate.update(transform);
+            }
+            if (transform.isSet()) {
+                var element = this.$el[0],
+                    newValue = transform.toString();
+                element.style['-webkit-transform'] = newValue;
+                element.style['-moz-transform'] = newValue;
+                element.style['-ms-transform'] = newValue;
+                element.style['-o-transform'] = newValue;
+                element.style.transform = newValue;
+            }
         }
     };
     
@@ -487,21 +592,6 @@
         this.matrix = matrix || new TransformMatrix();
     }
     Transform.prototype = {
-        setTranslateX: function(value) {
-            this.translateX = value;
-        },
-        setTranslateY: function(value) {
-            this.translateY = value;
-        },
-        setTranslateZ: function(value) {
-            this.translateZ = value;
-        },
-        setScale: function(value) {
-            this.scale = value;
-        },
-        setRotation: function(angle) {
-            this.rotate = angle;
-        },
         isSet: function() {
             return (typeof this.translateX != "undefined" ||
                     typeof this.translateY != "undefined" ||
@@ -510,11 +600,11 @@
                     typeof this.rotate != "undefined")
         },
         toString: function() {
-            var x = (typeof this.translateX != "undefined" ? this.translateX : this.matrix.getTranslateX()).toFixed(2),
-                y = (typeof this.translateY != "undefined" ? this.translateY : this.matrix.getTranslateY()).toFixed(2),
-                z = (typeof this.translateZ != "undefined" ? this.translateZ : this.matrix.getTranslateZ()).toFixed(2),
-                scale = (typeof this.scale != "undefined" ? this.scale : this.matrix.getScale()),
-                rotate = (typeof this.rotate != "undefined" ? this.rotate : this.matrix.getRotation()),
+            var x = (typeof this.translateX != "undefined" ? this.translateX : this.matrix.translateX()).toFixed(2),
+                y = (typeof this.translateY != "undefined" ? this.translateY : this.matrix.translateY()).toFixed(2),
+                z = (typeof this.translateZ != "undefined" ? this.translateZ : this.matrix.translateZ()).toFixed(2),
+                scale = (typeof this.scale != "undefined" ? this.scale : this.matrix.scale()),
+                rotate = (typeof this.rotate != "undefined" ? this.rotate : this.matrix.rotate()),
                 string = 'translate3d('+x+'px, '+y+'px, '+z+'px)';
             if (scale != 1) {
                 string += ' scale('+scale+')';
@@ -561,31 +651,22 @@
         return TransformMatrix.fromArray(transform.replace(/^matrix(3d)?\((.*)\)$/, '$2').split(/, /), result);
     };
     TransformMatrix.prototype = {
-        getTranslateX: function() {
+        translateX: function() {
             return this.matrix[12];
         },
-        setTranslateX: function(value) {
-            this.matrix[12] = value;
-        },
-        getTranslateY: function() {
+        translateY: function() {
             return this.matrix[13];
         },
-        setTranslateY: function(value) {
-            this.matrix[13] = value;
-        },
-        getTranslateZ: function() {
+        translateZ: function() {
             return this.matrix[14];
         },
-        setTranslateZ: function(value) {
-            this.matrix[14] = value;
-        },
-        getScale: function() {
+        scale: function() {
             var a = this.matrix[0],
                 b = this.matrix[1],
                 d = 10;
             return Math.round( Math.sqrt( a*a + b*b ) * d ) / d;
         },
-        getRotation: function() {
+        rotate: function() {
             var a = this.matrix[0],
                 b = this.matrix[1];
             return Math.round(Math.atan2(b, a) * (180/Math.PI));
