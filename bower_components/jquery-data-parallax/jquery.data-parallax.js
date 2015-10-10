@@ -235,11 +235,8 @@
             }
             else {
                 var matches = value.match(/v(w|h)/g);
-                if (matches[0] === 'vw') {
-                    value = percValue * windowWidth;
-                }
-                else if (matches[0] === 'vh') {
-                    value = percValue * windowHeight;
+                if (matches) {
+                    value = percValue * (matches[0] === 'vw' ? windowWidth : windowHeight);
                 }
             }
         }
