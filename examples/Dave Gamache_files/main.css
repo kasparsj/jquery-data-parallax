@@ -27,7 +27,7 @@ body {
 /* 1. Intro Keyframe
 --------------------------------------- */
 #intro {
-  position: fixed;
+  position: absolute;
   top: 48%;
   left: 10%;
   width: 80%;
@@ -56,7 +56,7 @@ body {
 --------------------------------------- */
 #explosion,
 #images {
-  position: fixed;
+  position: absolute;
   top: 100%;
   width: 100%;
   height: 100%;
@@ -162,7 +162,7 @@ body {
 /* 3. Links Keyframe
 --------------------------------------- */
 #links {
-  position: fixed;
+  position: absolute;
   top: 48%;
   left: 10%;
   width: 80%;
