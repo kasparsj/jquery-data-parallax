@@ -105,7 +105,7 @@
                 animation.rotate = new Scene($this, rotateOptions, 360);
             }
             if (animation.x || animation.y || animation.z || animation.scale || animation.rotate) {
-                animation.transform = new Transform(new TransformMatrix());
+                animation.transform = true;
             }
 
             if (typeof options.color != "undefined") {
@@ -159,7 +159,7 @@
         for (var i=0, len=animations.length; i<len; i++) {
             animation = animations[i];
             if (animation.transform) {
-                TransformMatrix.fromStyle(style, animation.transform.matrix);
+                animation.transform = new Transform(TransformMatrix.fromStyle(style));
                 if (animation.x && animation.x.needsUpdate()) {
                     var newX = animation.x.getValue(animation.transform.matrix.getTranslateX());
                     animation.transform.setTranslateX(newX);
@@ -180,12 +180,14 @@
                     var newRotation = animation.rotate.getValue(animation.transform.matrix.getRotation());
                     animation.transform.setRotation(newRotation);
                 }
-                var transform = animation.transform.toString();
-                this.style['-webkit-transform'] = transform;
-                this.style['-moz-transform'] = transform;
-                this.style['-ms-transform'] = transform;
-                this.style['-o-transform'] = transform;
-                this.style.transform = transform;
+                if (animation.transform.isSet()) {
+                    var transform = animation.transform.toString();
+                    this.style['-webkit-transform'] = transform;
+                    this.style['-moz-transform'] = transform;
+                    this.style['-ms-transform'] = transform;
+                    this.style['-o-transform'] = transform;
+                    this.style.transform = transform;
+                }
             }
             if (animation.color && animation.color.needsUpdate()) {
                 var fromColor = RGBColor.fromString(animation.color.getFrom(style.color)),
@@ -499,6 +501,13 @@
         },
         setRotation: function(angle) {
             this.rotate = angle;
+        },
+        isSet: function() {
+            return (typeof this.translateX != "undefined" ||
+                    typeof this.translateY != "undefined" ||
+                    typeof this.translateZ != "undefined" ||
+                    typeof this.scale != "undefined" ||
+                    typeof this.rotate != "undefined")
         },
         toString: function() {
             var x = (typeof this.translateX != "undefined" ? this.translateX : this.matrix.getTranslateX()).toFixed(2),
