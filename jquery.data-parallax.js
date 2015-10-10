@@ -6,7 +6,6 @@
         elementsArr,
         animationsArr,
         scrollTop,
-        len,
         windowHeight = $window.height(),
         windowWidth = $window.width(),
         scrollTicking = false,
@@ -60,8 +59,7 @@
         if (!Array.isArray(jsOptions)) {
             jsOptions = [jsOptions];
         }
-        var length = Math.max(dataOptions.length, jsOptions.length);
-        for (var i=0; i<length; i++) {
+        for (var i= 0, len = Math.max(dataOptions.length, jsOptions.length); i<len; i++) {
             var options = $.extend(dataOptions[i] || {}, jsOptions[i] || {});
             typeof options.start == "undefined" || (options.start = convertToElement(options.start));
             typeof options.start != "undefined" || (options.start = this[0]);
@@ -75,7 +73,7 @@
         var $this = $(this),
             animations = [],
             optionsArr = parseOptions.call($this);
-        for (var i=0; i<optionsArr.length; i++) {
+        for (var i= 0, len = optionsArr.length; i<len; i++) {
             var options = optionsArr[i],
                 globalOptions = {
                     axis: options.axis,
