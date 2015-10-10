@@ -108,6 +108,14 @@
                 animation.transform = new Transform(new TransformMatrix());
             }
 
+            if (typeof options.color != "undefined") {
+                var colorOptions = mergeOptions(options.color, globalOptions);
+                animation.color = new Scene($this, colorOptions, 0xffffff);
+            }
+            if (typeof options.backgroundColor != "undefined") {
+                var bgColorOptions = mergeOptions(options.backgroundColor, globalOptions);
+                animation.bgColor = new Scene($this, bgColorOptions, 0xffffff);
+            }
             if (typeof options.opacity != "undefined") {
                 var opacityOptions = mergeOptions(options.opacity, globalOptions);
                 animation.opacity = new Scene($this, opacityOptions, 1);
@@ -179,6 +187,18 @@
                 this.style['-o-transform'] = transform;
                 this.style.transform = transform;
             }
+            if (animation.color && animation.color.needsUpdate()) {
+                var fromColor = RGBColor.fromString(animation.color.getFrom(style.color)),
+                    toColor = RGBColor.fromString(animation.color.to);
+                fromColor.interpolate(toColor, animation.color.getProgress());
+                this.style.color = fromColor.toString();
+            }
+            if (animation.bgColor && animation.bgColor.needsUpdate()) {
+                var fromColor = RGBColor.fromString(animation.bgColor.getFrom(style.backgroundColor)),
+                    toColor = RGBColor.fromString(animation.bgColor.to);
+                fromColor.interpolate(toColor, animation.bgColor.getProgress());
+                this.style.backgroundColor = fromColor.toString();
+            }
             if (animation.opacity && animation.opacity.needsUpdate()) {
                 var newOpacity = animation.opacity.getValue(parseFloat(style.opacity));
                 this.style.opacity = newOpacity;
@@ -245,6 +265,10 @@
         }
         return value;
     }
+    
+    function interpolate(from, to, progress) {
+        return (to - from) * progress + from;
+    }
 
     function Scene($el, options, maxValue) {
         this.$el = $el;
@@ -306,20 +330,154 @@
                 this.state = Scene.STATE_AFTER;
             }
         },
-        getValue: function(value) {
-            typeof this.from != "undefined" || (this.from = value);
+        getProgress: function() {
             if (this.state == Scene.STATE_BEFORE) {
-                return this.from;
+                return 0;
             }
             else if (this.state == Scene.STATE_DURING) {
                 var posPx = scrollTop - this.startPx,
                     percent = posPx / this.durationPx,
-                    aniPos = this.ease.call(this, percent);
-                return (this.to - this.from) * aniPos + this.from;
+                    progress = this.ease.call(this, percent);
+                return progress;
             }
             else {
-                return this.to;
+                return 1;
             }
+        },
+        getFrom: function(defaultValue) {
+            typeof this.from != "undefined" || (this.from = defaultValue);
+            return this.from;
+        },
+        getValue: function(value, progress) {
+            this.getFrom(value);
+            typeof progress != "undefined" || (progress = this.getProgress());
+            return interpolate(this.from, this.to, progress);
+        }
+    };
+    
+    function RGBColor(r, g, b, a) {
+        this.r = r || 0;
+        this.g = g || 0;
+        this.b = b || 0;
+        this.a = typeof a === "number" ? a : 1;
+    }
+    RGBColor.fromArray = function(array, result) {
+        result || (result = new RGBColor());
+        if (array.length < 3) {
+            return result;
+        }
+        result.r = parseInt(array[0]);
+        result.g = parseInt(array[1]);
+        result.b = parseInt(array[2]);
+        if (array.length > 3) {
+            result.a = parseFloat(array[3]);
+        }
+        return result;
+    };
+    RGBColor.fromString = function(string, result) {
+        if (string.match(/^#([0-9a-f]{3})$/i)) {
+            return RGBColor.fromArray([
+                parseInt(string.charAt(1),16)*0x11,
+                parseInt(string.charAt(2),16)*0x11,
+                parseInt(string.charAt(3),16)*0x11
+            ], result);
+        }
+        if (string.match(/^#([0-9a-f]{6})$/i)) {
+            return RGBColor.fromArray([
+                parseInt(string.substr(1,2),16),
+                parseInt(string.substr(3,2),16),
+                parseInt(string.substr(5,2),16)
+            ], result);
+        }
+        return RGBColor.fromArray(string.replace(/^rgb(a)?\((.*)\)$/, '$2').split(/, /), result);
+    };
+    RGBColor.fromHSV = function(hsv, result) {
+        result || (result = new RGBColor());
+        var r = hsv.v,
+            g = hsv.v,
+            b = hsv.v;
+        if (hsv.s != 0) {
+            var f  = hsv.h / 60 - Math.floor(hsv.h / 60);
+            var p  = hsv.v * (1 - hsv.s / 100);
+            var q  = hsv.v * (1 - hsv.s / 100 * f);
+            var t  = hsv.v * (1 - hsv.s / 100 * (1 - f));
+            switch (Math.floor(hsv.h / 60)){
+                case 0: r = hsv.v; g = t; b = p; break;
+                case 1: r = q; g = hsv.v; b = p; break;
+                case 2: r = p; g = hsv.v; b = t; break;
+                case 3: r = p; g = q; b = hsv.v; break;
+                case 4: r = t; g = p; b = hsv.v; break;
+                case 5: r = hsv.v; g = p; b = q; break;
+            }
+        }
+        result.r = r * 2.55;
+        result.g = g * 2.55;
+        result.b = b * 2.55;
+        result.a = hsv.a;
+        return result;
+    };
+    RGBColor.prototype = {
+        getHue: function(maximum, range) {
+            var hue = 0;
+            if (range != 0) {
+                switch (maximum){
+                    case this.r:
+                        hue = (this.g - this.b) / range * 60;
+                        if (hue < 0) hue += 360;
+                        break;
+                    case this.g:
+                        hue = (this.b - this.r) / range * 60 + 120;
+                        break;
+                    case this.b:
+                        hue = (this.r - this.g) / range * 60 + 240;
+                        break;
+                }
+            }
+            return hue;
+    
+        },
+        interpolate: function(to, progress) {
+            var src = HSVColor.fromRGB(this),
+                dst = HSVColor.fromRGB(to);
+            src.interpolate(dst, progress);
+            RGBColor.fromHSV(src, this);
+        },
+        toString: function() {
+            if (this.a !== 1) {
+                return "rgba("+this.r.toFixed()+","+this.g.toFixed()+","+this.b.toFixed()+","+this.a.toFixed(2)+")";
+            }
+            return "rgb("+this.r.toFixed()+","+this.g.toFixed()+","+this.b.toFixed()+")";
+        }
+    };
+    
+    function HSVColor(h, s, v, a) {
+        this.h = h || 0;
+        this.s = s || 0;
+        this.v = v || 0;
+        this.a = typeof a === "number" ? a : 1;
+    }
+    HSVColor.fromRGB = function(rgb, result) {
+        result || (result = new HSVColor());
+        var maximum = Math.max(rgb.r, rgb.g, rgb.b);
+        var range   = maximum - Math.min(rgb.r, rgb.g, rgb.b);
+        result.h = rgb.getHue(maximum, range);
+        result.s = (maximum == 0 ? 0 : 100 * range / maximum);
+        result.v = maximum / 2.55;
+        result.a = rgb.a;
+        return result;
+    };
+    HSVColor.prototype = {
+        interpolate: function(to, progress, precision) {
+            this.h = interpolate(this.h, to.h, progress);
+            this.s = interpolate(this.s, to.s, progress);
+            this.v = interpolate(this.v, to.v, progress);
+            this.a = interpolate(this.a, to.a, progress);
+        },
+        toString: function() {
+            if (this.a !== 1) {
+                return "hsva("+this.h+","+this.s+","+this.v+","+this.a.toFixed(2)+")";
+            }
+            return "hsv("+this.h+","+this.s+","+this.v+")";
         }
     };
 
