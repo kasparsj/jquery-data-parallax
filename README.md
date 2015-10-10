@@ -59,6 +59,10 @@ scale
 
 rotate
 
+color
+
+backgroundColor
+
 opacity
 
 ### Options
