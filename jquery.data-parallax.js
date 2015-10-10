@@ -34,12 +34,12 @@
                         $elements = this;
                         window.onresize = onResize;
                         window.onscroll = onScroll;
-                        //setInterval(onScroll, 10);
                     }
                     else {
                         $elements.add(this);
                     }
                     elementsArr = $elements.toArray();
+                    onScroll();
                 }
         }
         return this;
@@ -274,12 +274,14 @@
         needsUpdate: function() {
             this.updateStart();
             this.updateDuration();
-            var prevState = this.state;
             this.updateState();
-            return this._needsUpdate(prevState);
+            return this._needsUpdate();
         },
-        _needsUpdate: function(prevState) {
-            return (prevState == Scene.STATE_DURING) || (this.state == Scene.STATE_DURING);
+        _needsUpdate: function() {
+            return this.prevState === Scene.STATE_DURING || 
+                this.state === Scene.STATE_DURING ||
+                (typeof this.prevState === "undefined" && 
+                    (this.state === Scene.STATE_AFTER || typeof this.from != "undefined"));
         },
         updateStart: function() {
             this.startPx = Math.max(getOffset(this.start, this.axis) - this.trigger, 0);
@@ -291,6 +293,7 @@
             }
         },
         updateState: function() {
+            this.prevState = this.state;
             if (scrollTop < this.startPx) {
                 this.state = Scene.STATE_BEFORE;
             }
@@ -302,10 +305,10 @@
             }
         },
         getProgress: function() {
-            if (this.state == Scene.STATE_BEFORE) {
+            if (this.state === Scene.STATE_BEFORE) {
                 return 0;
             }
-            else if (this.state == Scene.STATE_DURING) {
+            else if (this.state === Scene.STATE_DURING) {
                 var posPx = scrollTop - this.startPx,
                     percent = posPx / this.durationPx,
                     progress = this.ease.call(this, percent);
@@ -368,8 +371,8 @@
         Scene.call(this, $el, options);
     }
     PinScene.prototype = $.extend(Object.create(Scene.prototype), {
-        _needsUpdate: function(prevState) {
-            return prevState != this.state;
+        _needsUpdate: function() {
+            return this.prevState != this.state;
         },
         _getOldValue: function(style) {
             var toStyle = getComputedStyle(this.to);
@@ -380,11 +383,16 @@
             };
         },
         _getNewValue: function() {
-            return this.state == Scene.STATE_DURING ? {
-                position: 'fixed',
-                top: this.from.top,
-                left: this.from.left
-            } : this.from;
+            if (this.state == Scene.STATE_DURING) {
+                var top = parseFloat(this.from.top),
+                    left = parseFloat(this.from.left);
+                return {
+                    position: 'fixed',
+                    top: isNaN(top) ? 0 : top,
+                    left: isNaN(left) ? 0 : left
+                };
+            }
+            return this.from;
         },
         _setValue: function(newValue) {
             this.to.style.position = newValue.position;
