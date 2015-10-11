@@ -137,7 +137,7 @@ If you need another element to act as the trigger.
 If you don't need a trigger, set this to "null" or "false".
 
 #### triggerHook
-**Type:** number or string (percentage)  
+**Type:** number or string (percentage or viewport units) or callback function  
 **Default:** "100%" ("0%" for "pin" property)
 
 0% is top of the viewport and 100% is bottom of the viewport.
