@@ -99,20 +99,32 @@ Hex or rgb() color string.
 #### top
 **Type:** number or string (percentage or viewport units)
 
+Better use "y" where possible.
+
 #### left
 **Type:** number or string (percentage or viewport units)
+
+Better use "x" where possible.
 
 #### width
 **Type:** number or string (percentage or viewport units)
 
+Better use "scaleX" where possible.
+
 #### height
 **Type:** number or string (percentage or viewport units)
+
+Better use "scaleY" where possible.
 
 #### backgroundPositionX
 **Type:** number or string (percentage or viewport units)
 
+Better use "x" where possible.
+
 #### backgroundPositionY
 **Type:** number or string (percentage or viewport units)
+
+Better use "y" where possible.
 
 ### Options
 
