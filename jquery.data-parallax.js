@@ -1,8 +1,7 @@
 ;(function($) {
     'use strict';
 
-    var $window = $(window),
-        $elements = null,
+    var $elements = null,
         elementsArr,
         animationsArr,
         scrollTop,
