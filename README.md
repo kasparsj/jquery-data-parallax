@@ -129,6 +129,8 @@ Setting duration to "0" will run it till the end of document.
 **Type:** selector  
 **Default:** the element
 
+Optional. If you need another element to act as the trigger.
+
 #### triggerHook
 **Type:** number or string (percentage)  
 **Default:** "100%" ("0%" for "pin" property)
