@@ -1,5 +1,8 @@
 # [data-parallax]
-jQuery plugin for setting up parallax effects easily using data attributes.
+Create super fast parallax effects using data attributes.
+
+* written in native Javascript for best performance
+* uses translate3d to ensure GPU acceleration
 
 ## Examples
 
