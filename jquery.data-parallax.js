@@ -396,9 +396,9 @@
             return this._needsUpdate();
         },
         _needsUpdate: function() {
-            return this.prevState === Scene.STATE_DURING || 
-                this.state === Scene.STATE_DURING ||
-                (typeof this.prevState === "undefined" && this.state === Scene.STATE_AFTER);
+            return this.state === Scene.STATE_DURING ||
+                (typeof this.prevState === "undefined" && this.state === Scene.STATE_AFTER) ||
+                this.prevState != this.state;
         },
         updateStart: function() {
             this.start = Math.max(this.getOffset() - this.triggerHook, 0);
