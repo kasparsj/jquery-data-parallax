@@ -117,10 +117,6 @@
                 animation.transform = new TransformContainer($this, transformOptions);
             }
 
-            if (typeof options.width != "undefined") {
-                var widthOptions = mergeOptions(options.width);
-                animation.width = new StyleScene($this, widthOptions, 'width');
-            }
             if (typeof options.opacity != "undefined") {
                 var opacityOptions = mergeOptions(options.opacity, globalOptions);
                 animation.opacity = new StyleScene($this, opacityOptions, 'opacity', 1);
