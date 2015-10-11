@@ -116,10 +116,10 @@ as well as (overridden) for each individually:
 All options are **optional**.
 
 #### offset
-**Type:** number  
+**Type:** number or string (percentage or viewport units) or callback function  
 **Default:** 0
 
-If you need to start the scene exact pixels from document's beginning or "triggerElement"'s beginning.
+If you need to start the scene after document's beginning or "triggerElement"'s beginning.
 
 #### duration
 **Type:** number or string (percentage or viewport units) or callback function  

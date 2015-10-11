@@ -71,7 +71,7 @@
             typeof options.start === "undefined" || (options.triggerElement = options.start);
             typeof options.trigger == "undefined" || (options.triggerHook = options.trigger);
             
-            typeof options.offset === "number" || (options.offset = 0);
+            typeof options.offset != "undefined" || (options.offset = 0);
             typeof options.triggerElement === "undefined" || (options.triggerElement = convertToElement(options.triggerElement));
             typeof options.triggerElement != "undefined" || (options.triggerElement = this[0]);
             optionsArr.push(options);
@@ -291,8 +291,9 @@
         this.$el = $el;
         this.from = options.from;
         this.to = options.to;
-        this.offset = options.offset;
         this.axis = options.axis;
+        
+        this.offset = convertOption(options.offset, this.getElementDimension());
         
         typeof options.triggerHook != "undefined" || (options.triggerHook = "100%");
         this.triggerHook = convertOption(options.triggerHook, options.axis === Scene.AXIS_X ? windowWidth : windowHeight);
@@ -338,13 +339,17 @@
                 };
             }
             else {
-                var maxDuration = this.axis === Scene.AXIS_X ? this.$el.outerWidth() : this.$el.outerHeight(),
-                    durationPx = convertOption(duration, maxDuration);
+                var durationPx = convertOption(duration, this.getElementDimension());
                 validateDurationPx(durationPx);
                 this.duration = function () {
                     return durationPx;
                 };
             }
+        },
+        getElementDimension: function() {
+            return this.axis === Scene.AXIS_X ? 
+                this.$el.outerWidth(true) : 
+                this.$el.outerHeight(true);
         },
         needsUpdate: function() {
             this.updateStart();
