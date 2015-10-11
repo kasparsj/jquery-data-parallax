@@ -462,6 +462,7 @@
     }
     ScalarScene.prototype = inherit(Scene.prototype, {
         _getNewValue: function() {
+            // todo: think about this once more ("90" != 90)
             if (typeof(this.from) != typeof(this.to)) {
                 console.error("Parallax from and to values have different types " + this.from + "("+typeof(this.from)+") " + this.to + "("+typeof(this.to)+")");
             }
