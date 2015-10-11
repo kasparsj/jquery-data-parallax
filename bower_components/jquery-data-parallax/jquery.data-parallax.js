@@ -6,8 +6,8 @@
         elementsArr,
         animationsArr,
         scrollTop,
-        windowHeight = $window.height(),
-        windowWidth = $window.width(),
+        windowHeight, windowWidth,
+        documentWidth, documentHeight,
         scrollTicking = false,
         resizeTicking = false,
         isTouchDevice = window.Modernizr && typeof(Modernizr.touchevents) != 'undefined' ? Modernizr.touchevents : testTouchEvents();
@@ -20,20 +20,26 @@
     $.fn.parallax = function(method) {
         switch (method) {
             case 'reset':
-                this.css('transform', '');
+                // todo: implement this
+                //this.css('transform', '');
                 break;
             case 'destroy':
+                // todo: implement this
                 $elements.not(this);
                 break;
             default:
                 if (!isTouchDevice) {
                     this.data("parallax-js", method);
+                    var firstCall = ($elements === null);
                     animationsArr = [];
+                    if (firstCall) {
+                        updateDimensions();
+                    }
                     this.each(updateAnimationsArray);
-                    if ($elements === null) {
+                    if (firstCall) {
                         $elements = this;
                         window.onresize = onResize;
-                        window.onscroll = onScroll;
+                        window.onscroll = onScroll
                     }
                     else {
                         $elements.add(this);
@@ -94,13 +100,27 @@
             if (typeof options.scale != "undefined") {
                 transformOptions.scale = mergeOptions(options.scale, globalOptions);
             }
+            else {
+                if (typeof options.scaleX != "undefined") {
+                    transformOptions.scaleX = mergeOptions(options.scaleX, globalOptions);
+                }
+                if (typeof options.scaleY != "undefined") {
+                    transformOptions.scaleY = mergeOptions(options.scaleY, globalOptions);
+                }
+            }
             if (typeof options.rotate != "undefined") {
                 transformOptions.rotate = mergeOptions(options.rotate, globalOptions);
             }
-            if (transformOptions.x || transformOptions.y || transformOptions.z || transformOptions.scale || transformOptions.rotate) {
+            if (transformOptions.x || transformOptions.y || transformOptions.z || 
+                transformOptions.scale || transformOptions.scaleX || transformOptions.scaleY || 
+                transformOptions.rotate) {
                 animation.transform = new TransformContainer($this, transformOptions);
             }
 
+            if (typeof options.width != "undefined") {
+                var widthOptions = mergeOptions(options.width);
+                animation.width = new StyleScene($this, widthOptions, 'width');
+            }
             if (typeof options.opacity != "undefined") {
                 var opacityOptions = mergeOptions(options.opacity, globalOptions);
                 animation.opacity = new StyleScene($this, opacityOptions, 'opacity', 1);
@@ -125,12 +145,24 @@
     function onResize() {
         if (!resizeTicking) {
             window.requestAnimationFrame(function() {
-                windowHeight = $window.height();
-                windowWidth = $window.width();
+                updateDimensions();
                 $elements.each(updateAnimationsArray);
             });
             resizeTicking = true;
         }
+    }
+
+    function updateDimensions() {
+        var body = document.body,
+            html = document.documentElement;
+
+        windowWidth = Math.max(html.clientWidth, window.innerWidth || 0);
+        windowHeight = Math.max(html.clientHeight, window.innerHeight || 0);
+
+        documentWidth = Math.max( body.scrollWidth, body.offsetWidth,
+            html.clientWidth, html.scrollWidth, html.offsetWidth );
+        documentHeight = Math.max( body.scrollHeight, body.offsetHeight,
+            html.clientHeight, html.scrollHeight, html.offsetHeight );
     }
 
     function onScroll() {
@@ -202,7 +234,7 @@
             top: offsetTop
         };
     }
-
+    
     function convertToOffset(value, axis) {
         if (isElement(value)) {
             return getOffset(value)[axis === Scene.AXIS_X ? 'left' : 'top'];
@@ -236,7 +268,7 @@
                 }
             }
         }
-        else if (typeof value == "function") {
+        else if (typeof value === "function") {
             value = value(maxValue);
         }
         return value;
@@ -263,30 +295,12 @@
         this.to = options.to;
         
         typeof options.trigger != "undefined" || (options.trigger = "100%");
+        console.log(windowHeight);
         this.trigger = convertOption(options.trigger, options.axis === Scene.AXIS_X ? windowWidth : windowHeight);
         this.start = convertToElement(options.start) || options.start;
         
-        if (typeof options.ease == "function") {
-            this.ease = options.ease;
-        }
-        else {
-            typeof options.ease == "undefined" || (this.ease = $.easing[options.ease]);
-            typeof this.ease == "function" || (this.ease = $.easing.linear);
-        }
-
-        if (typeof options.duration != "undefined") {
-            var maxDuration = options.axis === Scene.AXIS_X ? $el.outerWidth() : $el.outerHeight(),
-                durationPx = convertOption(options.duration, maxDuration);
-            this.duration = function() {
-                return durationPx;
-            };
-        }
-        else {
-            var scene = this;
-            this.duration = function() {
-                return (convertToOffset(scene.$el[0], options.axis) + scene.$el.outerHeight()) - scene.startPx;
-            };
-        }
+        this._setEase(options.ease);
+        this._setDuration(options.duration);
     }
     Scene.AXIS_X = 'x';
     Scene.AXIS_Y = 'y';
@@ -294,6 +308,45 @@
     Scene.STATE_DURING = 'during';
     Scene.STATE_AFTER = 'after';
     Scene.prototype = {
+        _setEase: function(ease) {
+            if (typeof ease == "function") {
+                this.ease = ease;
+            }
+            else {
+                typeof ease === "undefined" || (this.ease = $.easing[ease]);
+                typeof this.ease === "function" || (this.ease = $.easing.linear);
+            }
+        },
+        _setDuration: function(duration) {
+            var validateDurationPx = function(value) {
+                if (value < 0) {
+                    console.error("Invalid parallax duration: "+value);
+                }
+            };
+            if (typeof duration === "undefined") {
+                var scene = this;
+                this.duration = function() {
+                    var durationPx = (convertToOffset(scene.$el[0], scene.axis) + scene.$el.outerHeight()) - scene.startPx;
+                    validateDurationPx(durationPx);
+                    return durationPx;
+                };
+            }
+            else if (typeof duration === "function") {
+                this.duration = function() {
+                    var durationPx = duration();
+                    validateDurationPx(durationPx);
+                    return durationPx;
+                };
+            }
+            else {
+                var maxDuration = this.axis === Scene.AXIS_X ? this.$el.outerWidth() : this.$el.outerHeight(),
+                    durationPx = convertOption(duration, maxDuration);
+                validateDurationPx(durationPx);
+                this.duration = function () {
+                    return durationPx;
+                };
+            }
+        },
         needsUpdate: function() {
             this.updateStart();
             this.updateDuration();
@@ -314,8 +367,10 @@
         },
         updateDuration: function() {
             this.durationPx = this.duration.call(this);
-            if (this.durationPx < 0) {
-                console.error("Invalid parallax duration: "+this.durationPx);
+            if (this.durationPx === 0) {
+                this.durationPx = ((this.axis === Scene.AXIS_X ? 
+                    documentWidth - windowWidth : 
+                    documentHeight - windowHeight) - this.startPx);
             }
         },
         updateState: function() {
@@ -447,10 +502,10 @@
     }
     TransformScene.prototype = $.extend(Object.create(ScalarScene.prototype), {
         _getOldValue: function(transform) {
-            return transform.matrix[this.propName]();
+            return transform.get(this.propName);
         },
         _setValue: function(newValue, transform) {
-            transform[this.propName] = newValue;
+            transform.set(this.propName, newValue);
         }
     });
 
@@ -468,13 +523,22 @@
         if (options.scale) {
             this.scale = new TransformScene($el, options.scale, 'scale', 1);
         }
+        else {
+            if (options.scaleX) {
+                this.scaleX = new TransformScene($el, options.scaleX, 'scaleX', 1);
+            }
+            if (options.scaleY) {
+                this.scaleY = new TransformScene($el, options.scaleY, 'scaleY', 1);
+            }
+        }
         if (options.rotate) {
             this.rotate = new TransformScene($el, options.rotate, 'rotate', 360);
         }
     }
     TransformContainer.prototype = {
         update: function(style) {
-            var transform = new Transform(TransformMatrix.fromStyle(style));
+            var matrix = TransformMatrix.fromStyle(style),
+                transform = Transform.fromMatrix(matrix);
             if (this.x && this.x.needsUpdate()) {
                 this.x.update(transform);
             }
@@ -487,10 +551,16 @@
             if (this.scale && this.scale.needsUpdate()) {
                 this.scale.update(transform);
             }
+            if (this.scaleX && this.scaleX.needsUpdate()) {
+                this.scaleX.update(transform);
+            }
+            if (this.scaleY && this.scaleY.needsUpdate()) {
+                this.scaleY.update(transform);
+            }
             if (this.rotate && this.rotate.needsUpdate()) {
                 this.rotate.update(transform);
             }
-            if (transform.isSet()) {
+            if (transform.isChanged()) {
                 var element = this.$el[0],
                     newValue = transform.toString();
                 element.style['-webkit-transform'] = newValue;
@@ -628,29 +698,52 @@
         }
     };
 
-    function Transform(matrix) {
-        this.matrix = matrix || new TransformMatrix();
+    function Transform() {
+        this.translateX = this.translateY = this.translateZ = 0;
+        this.scaleX = this.scaleY = 1;
+        this.rotate = 0;
     }
+    Transform.fromMatrix = function(matrix, result) {
+        result || (result = new Transform());
+        var a = matrix.matrix[0],
+            b = matrix.matrix[1],
+            c = matrix.matrix[4],
+            d = matrix.matrix[5];
+        result.translateX = matrix.matrix[12];
+        result.translateY = matrix.matrix[13];
+        result.translateZ = matrix.matrix[14];
+        result.scaleX = Math.sqrt(a*a + b*b);
+        result.scaleY = Math.sqrt(c*c + d*d);
+        result.rotate = Math.round(Math.atan2(b, a) * (180/Math.PI));
+        return result;
+    };
     Transform.prototype = {
-        isSet: function() {
-            return (typeof this.translateX != "undefined" ||
-                    typeof this.translateY != "undefined" ||
-                    typeof this.translateZ != "undefined" ||
-                    typeof this.scale != "undefined" ||
-                    typeof this.rotate != "undefined")
+        get: function(propName) {
+            if (propName === "scale") {
+                return this.scaleX;
+            }
+            return this[propName];
+        },
+        set: function(propName, value) {
+            if (propName === "scale") {
+                this.scaleX = value;
+                this.scaleY = value;
+            }
+            else {
+                this[propName] = value;
+            }
+            this._changed = true;
+        },
+        isChanged: function() {
+            return this._changed === true;
         },
         toString: function() {
-            var x = (typeof this.translateX != "undefined" ? this.translateX : this.matrix.translateX()).toFixed(2),
-                y = (typeof this.translateY != "undefined" ? this.translateY : this.matrix.translateY()).toFixed(2),
-                z = (typeof this.translateZ != "undefined" ? this.translateZ : this.matrix.translateZ()).toFixed(2),
-                scale = (typeof this.scale != "undefined" ? this.scale : this.matrix.scale()),
-                rotate = (typeof this.rotate != "undefined" ? this.rotate : this.matrix.rotate()),
-                string = 'translate3d('+x+'px, '+y+'px, '+z+'px)';
-            if (scale != 1) {
-                string += ' scale('+scale+')';
+            var string = 'translate3d('+this.translateX+'px, '+this.translateY+'px, '+this.translateZ+'px)';
+            if (this.scaleX != 1 || this.scaleY != 1) {
+                string += ' scale('+this.scaleX+','+this.scaleY+')';
             }
-            if (rotate) {
-                string += 'rotate('+rotate+'deg)';
+            if (this.rotate) {
+                string += 'rotate('+this.rotate+'deg)';
             }
             return string;
         }
@@ -689,28 +782,6 @@
         }
         var transform = style.transform || style.webkitTransform || style.mozTransform;
         return TransformMatrix.fromArray(transform.replace(/^matrix(3d)?\((.*)\)$/, '$2').split(/, /), result);
-    };
-    TransformMatrix.prototype = {
-        translateX: function() {
-            return this.matrix[12];
-        },
-        translateY: function() {
-            return this.matrix[13];
-        },
-        translateZ: function() {
-            return this.matrix[14];
-        },
-        scale: function() {
-            var a = this.matrix[0],
-                b = this.matrix[1],
-                d = 10;
-            return Math.round( Math.sqrt( a*a + b*b ) * d ) / d;
-        },
-        rotate: function() {
-            var a = this.matrix[0],
-                b = this.matrix[1];
-            return Math.round(Math.atan2(b, a) * (180/Math.PI));
-        }
     };
 
     if (!isTouchDevice) {

@@ -69,7 +69,7 @@ translateY
 
 translateZ
 
-#### scale
+#### scale or scaleX and scaleY
 **Type:** number
 
 #### rotate
@@ -117,6 +117,7 @@ as well as (overridden) for each individually:
 
 Percentage is calculated against element dimensions rather than viewport: "50%" == 0.5 * $(el).outerWidth(true).  
 For viewport relative values, use viewport units: vh or vw: "100vh" == $(window).height().
+Setting duration to "0" will run it till the end of document.
 
 #### trigger
 **Type:** number or string (percentage)  
