@@ -63,7 +63,6 @@
             var options = $.extend(dataOptions[i] || {}, jsOptions[i] || {});
             typeof options.start == "undefined" || (options.start = convertToElement(options.start));
             typeof options.start != "undefined" || (options.start = this[0]);
-            typeof options.trigger != "undefined" || (options.trigger = "100%");
             optionsArr.push(options);
         }
         return optionsArr;
@@ -181,25 +180,34 @@
         return $.extend({}, globalOptions, options);
     }
 
-    function getOffset(value, axis) {
-        if (isElement(value)) {
-            var offset = 0;
-            do {
-                offset += value[axis === 'x' ? 'offsetLeft' : 'offsetTop'];
-            } while (value = value.offsetParent);
-            return offset;
+    function getOffset(elem) {
+        var offsetLeft = elem.offsetLeft,
+            offsetTop = elem.offsetTop,
+            lastElem = elem;
+
+        while (elem = elem.offsetParent) {
+            if (elem === document.body) { //from my observation, document.body always has scrollLeft/scrollTop == 0
+                break;
+            }
+            offsetLeft += elem.offsetLeft;
+            offsetTop += elem.offsetTop;
+            lastElem = elem;
         }
-        return value;
+        if (lastElem && lastElem.style.position === 'fixed') { //slow - http://jsperf.com/offset-vs-getboundingclientrect/6
+            offsetLeft += window.pageXOffset || document.documentElement.scrollLeft;
+            offsetTop += window.pageYOffset || document.documentElement.scrollTop;
+        }
+        return {
+            left: offsetLeft,
+            top: offsetTop
+        };
     }
 
-    function isElement(obj) {
-        try {
-            return obj instanceof HTMLElement;
+    function convertToOffset(value, axis) {
+        if (isElement(value)) {
+            return getOffset(value)[axis === Scene.AXIS_X ? 'left' : 'top'];
         }
-        catch(e) {
-            return (typeof obj === "object") && (obj.nodeType === 1) &&
-                (typeof obj.style === "object") && (typeof obj.ownerDocument ==="object");
-        }
+        return value;
     }
 
     function convertToElement(value) {
@@ -233,6 +241,16 @@
         }
         return value;
     }
+
+    function isElement(obj) {
+        try {
+            return obj instanceof HTMLElement;
+        }
+        catch(e) {
+            return (typeof obj === "object") && (obj.nodeType === 1) &&
+                (typeof obj.style === "object") && (typeof obj.ownerDocument ==="object");
+        }
+    }
     
     function interpolate(from, to, progress) {
         return (to - from) * progress + from;
@@ -243,8 +261,11 @@
         this.axis = options.axis;
         this.from = options.from;
         this.to = options.to;
-        this.trigger = convertOption(options.trigger, options.axis === 'x' ? windowWidth : windowHeight);
+        
+        typeof options.trigger != "undefined" || (options.trigger = "100%");
+        this.trigger = convertOption(options.trigger, options.axis === Scene.AXIS_X ? windowWidth : windowHeight);
         this.start = convertToElement(options.start) || options.start;
+        
         if (typeof options.ease == "function") {
             this.ease = options.ease;
         }
@@ -254,7 +275,7 @@
         }
 
         if (typeof options.duration != "undefined") {
-            var maxDuration = options.axis === 'x' ? $el.outerWidth() : $el.outerHeight(),
+            var maxDuration = options.axis === Scene.AXIS_X ? $el.outerWidth() : $el.outerHeight(),
                 durationPx = convertOption(options.duration, maxDuration);
             this.duration = function() {
                 return durationPx;
@@ -263,10 +284,12 @@
         else {
             var scene = this;
             this.duration = function() {
-                return (getOffset(scene.$el[0], options.axis) + scene.$el.outerHeight()) - scene.startPx;
+                return (convertToOffset(scene.$el[0], options.axis) + scene.$el.outerHeight()) - scene.startPx;
             };
         }
     }
+    Scene.AXIS_X = 'x';
+    Scene.AXIS_Y = 'y';
     Scene.STATE_BEFORE = 'before';
     Scene.STATE_DURING = 'during';
     Scene.STATE_AFTER = 'after';
@@ -280,11 +303,14 @@
         _needsUpdate: function() {
             return this.prevState === Scene.STATE_DURING || 
                 this.state === Scene.STATE_DURING ||
-                (typeof this.prevState === "undefined" && 
-                    (this.state === Scene.STATE_AFTER || typeof this.from != "undefined"));
+                this.__needsInit();
+        },
+        __needsInit: function() {
+            return typeof this.prevState === "undefined" &&
+                (this.state === Scene.STATE_AFTER || typeof this.from != "undefined");
         },
         updateStart: function() {
-            this.startPx = Math.max(getOffset(this.start, this.axis) - this.trigger, 0);
+            this.startPx = Math.max(convertToOffset(this.start, this.axis) - this.trigger, 0);
         },
         updateDuration: function() {
             this.durationPx = this.duration.call(this);
@@ -368,11 +394,13 @@
 
     function PinScene($el, options) {
         options.to = convertToElement(options.to) || $el[0];
+        typeof options.trigger != "undefined" || (options.trigger = 0);
         Scene.call(this, $el, options);
     }
     PinScene.prototype = $.extend(Object.create(Scene.prototype), {
         _needsUpdate: function() {
-            return this.prevState != this.state;
+            return (typeof this.prevState != "undefined" || this.state == Scene.STATE_DURING) && 
+                this.prevState != this.state;
         },
         _getOldValue: function(style) {
             var toStyle = getComputedStyle(this.to);
@@ -384,12 +412,10 @@
         },
         _getNewValue: function() {
             if (this.state == Scene.STATE_DURING) {
-                var top = parseFloat(this.from.top),
-                    left = parseFloat(this.from.left);
                 return {
                     position: 'fixed',
-                    top: isNaN(top) ? 0 : top,
-                    left: isNaN(left) ? 0 : left
+                    top: this.from.pinTop + 'px',
+                    left: this.from.pinLeft + 'px'
                 };
             }
             return this.from;
@@ -398,6 +424,20 @@
             this.to.style.position = newValue.position;
             this.to.style.top = newValue.top;
             this.to.style.left = newValue.left;
+        },
+        _setFrom: function(defaultValue) {
+            if (typeof this.from === "undefined") {
+                var offset = getOffset(this.to);
+                if (this.axis === Scene.AXIS_X) {
+                    defaultValue.pinTop = offset.top;
+                    defaultValue.pinLeft = offset.left - this.startPx;
+                }
+                else {
+                    defaultValue.pinTop = offset.top - this.startPx;
+                    defaultValue.pinLeft = offset.left;
+                }
+                this.from = defaultValue;
+            }
         }
     });
     
