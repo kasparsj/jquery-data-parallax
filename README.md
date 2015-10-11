@@ -3,6 +3,8 @@ Create super fast parallax effects using data attributes.
 
 * written in native Javascript for best performance
 * uses translate3d to ensure GPU acceleration
+* uses HSV color model for color interpolation
+* intuitive default values, no need to type many parameters
 
 ## Examples
 
