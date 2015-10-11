@@ -398,7 +398,7 @@
         _needsUpdate: function() {
             return this.state === Scene.STATE_DURING ||
                 (typeof this.prevState === "undefined" && this.state === Scene.STATE_AFTER) ||
-                this.prevState != this.state;
+                (typeof this.prevState != "undefined" && this.prevState != this.state);
         },
         updateStart: function() {
             this.start = Math.max(this.getOffset() - this.triggerHook, 0);
@@ -463,7 +463,7 @@
     ScalarScene.prototype = inherit(Scene.prototype, {
         _getNewValue: function() {
             if (typeof(this.from) != typeof(this.to)) {
-                console.error("Parallax from and to values have different types " + this.from + " " + this.to);
+                console.error("Parallax from and to values have different types " + this.from + "("+typeof(this.from)+") " + this.to + "("+typeof(this.to)+")");
             }
             if (typeof this.to === "string") {
                 var from = parseFloat(this.from),
