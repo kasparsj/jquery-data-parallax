@@ -49,21 +49,47 @@ Using the object syntax you can explicitly pass in a **from** value (optional), 
 
 ### Available properties:
 
-x
+#### pin
+**Type:** boolean or selector
 
-y
+Make an elements' position fixed during the scene.
 
-z
+#### x
+**Type:** number
 
-scale
+translateX
 
-rotate
+#### y
+**Type:** number
 
-color
+translateY
 
-backgroundColor
+#### z
+**Type:** number
 
-opacity
+translateZ
+
+#### scale
+**Type:** number
+
+#### rotate
+**Type:** number
+
+Rotation in degrees.
+
+#### color
+**Type:** string (e.g. "#ff0000")
+
+Hex or rgb() color string.
+
+#### backgroundColor
+**Type:** string (e.g. "#ff0000")
+
+Hex or rgb() color string.
+
+#### opacity
+**Type:** number (0 - 1)
+
 
 ### Options
 
@@ -89,8 +115,8 @@ as well as (overridden) for each individually:
 **Type:** number or string (percentage or viewport units) or callback function  
 **Default:** element top + height - start
 
-Percentage is calculated against element dimensions rather than viewport: "50%" == 0.5 * $(el).width().  
-For viewport relative values, use viewport units: vh or vw.
+Percentage is calculated against element dimensions rather than viewport: "50%" == 0.5 * $(el).outerWidth(true).  
+For viewport relative values, use viewport units: vh or vw: "100vh" == $(window).height().
 
 #### trigger
 **Type:** number or string (percentage)  
