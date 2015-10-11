@@ -119,7 +119,7 @@ All options are **optional**.
 **Type:** number  
 **Default:** 0
 
-If you need to start the scene exact pixels from document or "triggerElement" beginning.
+If you need to start the scene exact pixels from document's beginning or "triggerElement"'s beginning.
 
 #### duration
 **Type:** number or string (percentage or viewport units) or callback function  
