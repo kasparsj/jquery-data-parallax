@@ -113,9 +113,9 @@ as well as (overridden) for each individually:
 
 ### Available options:
 
-#### start
-**Type:** number or selector  
-**Default:** the elements top offset
+#### offset
+**Type:** number  
+**Default:** 0
 
 #### duration
 **Type:** number or string (percentage or viewport units) or callback function  
@@ -125,7 +125,11 @@ Percentage is calculated against element dimensions rather than viewport: "50%" 
 For viewport relative values, use viewport units: vh or vw: "100vh" == $(window).height().  
 Setting duration to "0" will run it till the end of document.
 
-#### trigger
+#### triggerElement
+**Type:** selector  
+**Default:** the element
+
+#### triggerHook
 **Type:** number or string (percentage)  
 **Default:** "100%" ("0%" for "pin" property)
 

@@ -66,8 +66,14 @@
         }
         for (var i= 0, len = Math.max(dataOptions.length, jsOptions.length); i<len; i++) {
             var options = $.extend(dataOptions[i] || {}, jsOptions[i] || {});
-            typeof options.start == "undefined" || (options.start = convertToElement(options.start));
-            typeof options.start != "undefined" || (options.start = this[0]);
+            
+            // todo: remove in next minor release
+            typeof options.start === "undefined" || (options.triggerElement = options.start);
+            typeof options.trigger == "undefined" || (options.triggerHook = options.trigger);
+            
+            typeof options.offset === "number" || (options.offset = 0);
+            typeof options.triggerElement === "undefined" || (options.triggerElement = convertToElement(options.triggerElement));
+            typeof options.triggerElement != "undefined" || (options.triggerElement = this[0]);
             optionsArr.push(options);
         }
         return optionsArr;
@@ -81,9 +87,10 @@
             var options = optionsArr[i],
                 globalOptions = {
                     axis: options.axis,
-                    start: options.start,
-                    trigger: options.trigger,
-                    duration: options.duration
+                    triggerElement: options.triggerElement,
+                    triggerHook: options.triggerHook,
+                    duration: options.duration,
+                    offset: options.offset
                 },
                 animation = {},
                 transformOptions = {};
@@ -231,10 +238,7 @@
     }
     
     function convertToOffset(value, axis) {
-        if (isElement(value)) {
-            return getOffset(value)[axis === Scene.AXIS_X ? 'left' : 'top'];
-        }
-        return value;
+        return getOffset(value)[axis === Scene.AXIS_X ? 'left' : 'top'];
     }
 
     function convertToElement(value) {
@@ -243,7 +247,7 @@
             if (value.length) {
                 return value[0];
             }
-            console.error("Invalid parallax start selector: "+value);
+            console.error("Invalid parallax triggerElement selector: "+value);
         }
         else {
             return value;
@@ -285,14 +289,14 @@
 
     function Scene($el, options) {
         this.$el = $el;
-        this.axis = options.axis;
         this.from = options.from;
         this.to = options.to;
+        this.offset = options.offset;
+        this.axis = options.axis;
         
-        typeof options.trigger != "undefined" || (options.trigger = "100%");
-        console.log(windowHeight);
-        this.trigger = convertOption(options.trigger, options.axis === Scene.AXIS_X ? windowWidth : windowHeight);
-        this.start = convertToElement(options.start) || options.start;
+        typeof options.triggerHook != "undefined" || (options.triggerHook = "100%");
+        this.triggerHook = convertOption(options.triggerHook, options.axis === Scene.AXIS_X ? windowWidth : windowHeight);
+        this.triggerElement = convertToElement(options.triggerElement);
         
         this._setEase(options.ease);
         this._setDuration(options.duration);
@@ -321,7 +325,7 @@
             if (typeof duration === "undefined") {
                 var scene = this;
                 this.duration = function() {
-                    var durationPx = (convertToOffset(scene.$el[0], scene.axis) + scene.$el.outerHeight()) - scene.startPx;
+                    var durationPx = (convertToOffset(scene.$el[0], scene.axis) + scene.$el.outerHeight()) - scene.start;
                     validateDurationPx(durationPx);
                     return durationPx;
                 };
@@ -358,34 +362,41 @@
                 (this.state === Scene.STATE_AFTER || typeof this.from != "undefined");
         },
         updateStart: function() {
-            this.startPx = Math.max(convertToOffset(this.start, this.axis) - this.trigger, 0);
+            this.start = Math.max(this.getOffset() - this.triggerHook, 0);
         },
         updateDuration: function() {
             this.durationPx = this.duration.call(this);
             if (this.durationPx === 0) {
                 this.durationPx = ((this.axis === Scene.AXIS_X ? 
                     documentWidth - windowWidth : 
-                    documentHeight - windowHeight) - this.startPx);
+                    documentHeight - windowHeight) - this.start);
             }
         },
         updateState: function() {
             this.prevState = this.state;
-            if (scrollTop < this.startPx) {
+            if (scrollTop < this.start) {
                 this.state = Scene.STATE_BEFORE;
             }
-            else if (scrollTop <= (this.startPx + this.durationPx)) {
+            else if (scrollTop <= (this.start + this.durationPx)) {
                 this.state = Scene.STATE_DURING;
             }
             else {
                 this.state = Scene.STATE_AFTER;
             }
         },
+        getOffset: function() {
+            var offset = this.offset;
+            if (isElement(this.triggerElement)) {
+                offset += convertToOffset(this.triggerElement, this.axis);
+            }
+            return offset;
+        },
         getProgress: function() {
             if (this.state === Scene.STATE_BEFORE) {
                 return 0;
             }
             else if (this.state === Scene.STATE_DURING) {
-                var posPx = scrollTop - this.startPx,
+                var posPx = scrollTop - this.start,
                     percent = posPx / this.durationPx,
                     progress = this.ease.call(this, percent);
                 return progress;
@@ -444,7 +455,7 @@
 
     function PinScene($el, options) {
         options.to = convertToElement(options.to) || $el[0];
-        typeof options.trigger != "undefined" || (options.trigger = 0);
+        typeof options.triggerHook != "undefined" || (options.triggerHook = 0);
         Scene.call(this, $el, options);
     }
     PinScene.prototype = $.extend(Object.create(Scene.prototype), {
@@ -480,10 +491,10 @@
                 var offset = getOffset(this.to);
                 if (this.axis === Scene.AXIS_X) {
                     defaultValue.pinTop = offset.top;
-                    defaultValue.pinLeft = offset.left - this.startPx;
+                    defaultValue.pinLeft = offset.left - this.start;
                 }
                 else {
-                    defaultValue.pinTop = offset.top - this.startPx;
+                    defaultValue.pinTop = offset.top - this.start;
                     defaultValue.pinLeft = offset.left;
                 }
                 this.from = defaultValue;
