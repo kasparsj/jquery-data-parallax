@@ -140,8 +140,7 @@ If you don't need a trigger, set this to "null" or "false".
 **Type:** number or string (percentage)  
 **Default:** "100%" ("0%" for "pin" property)
 
-0% is top of the viewport and 100% is bottom of the viewport.  
-Sometimes you may need to use negative values e.g. "-300%"
+0% is top of the viewport and 100% is bottom of the viewport.
 
 #### ease
 **Type:** string or callback function  
