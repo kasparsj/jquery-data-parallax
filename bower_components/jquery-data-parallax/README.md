@@ -1,5 +1,11 @@
 # [data-parallax]
-jQuery plugin for setting up parallax effects easily using data attributes.
+Create super fast parallax effects using data attributes.
+
+* written in native Javascript for best performance
+* uses translate3d to ensure GPU acceleration
+* uses single ticking requestAnimationFrame() method
+* uses HSV color model for color interpolation
+* intuitive default values, no need to type many parameters
 
 ## Examples
 
@@ -40,14 +46,14 @@ $("#selector").parallax({
 
 ### Properties
 
-All properties can be specified as **number** or **percentage** (string) or **object**.  
+All properties can be specified as **number** or **string** or **object**.  
 Using the object syntax you can explicitly pass in a **from** value (optional), as well as override global options:
 
 ```html
 <div data-parallax='{"opacity":{"to":1,"from":0.5,"duration":100},"translateY":"50%","duration":200}'></div>
 ```
 
-### Available properties:
+### Currently supported properties:
 
 #### pin
 **Type:** boolean or selector
@@ -90,6 +96,35 @@ Hex or rgb() color string.
 #### opacity
 **Type:** number (0 - 1)
 
+#### top
+**Type:** number or string (percentage or viewport units)
+
+Better use "y" where possible.
+
+#### left
+**Type:** number or string (percentage or viewport units)
+
+Better use "x" where possible.
+
+#### width
+**Type:** number or string (percentage or viewport units)
+
+Better use "scaleX" where possible.
+
+#### height
+**Type:** number or string (percentage or viewport units)
+
+Better use "scaleY" where possible.
+
+#### backgroundPositionX
+**Type:** number or string (percentage or viewport units)
+
+Better use "x" where possible.
+
+#### backgroundPositionY
+**Type:** number or string (percentage or viewport units)
+
+Better use "y" where possible.
 
 ### Options
 
@@ -107,24 +142,37 @@ as well as (overridden) for each individually:
 
 ### Available options:
 
-#### start
-**Type:** number or selector  
-**Default:** the elements top offset
+All options are **optional**.
+
+#### offset
+**Type:** number or string (percentage or viewport units) or callback function  
+**Default:** 0
+
+If you need to start the scene after document's beginning or "triggerElement"'s beginning.
 
 #### duration
 **Type:** number or string (percentage or viewport units) or callback function  
-**Default:** element top + height - start
+**Default:** as long as it's needed to scroll past the element
 
-Percentage is calculated against element dimensions rather than viewport: "50%" == 0.5 * $(el).outerWidth(true).  
-For viewport relative values, use viewport units: vh or vw: "100vh" == $(window).height().
+Percentages are calculated against element dimensions rather than viewport: "50%" == 0.5 * $(el).outerWidth(true).  
+For viewport relative values, use viewport units: vh or vw: "100vh" == $(window).height().  
 Setting duration to "0" will run it till the end of document.
 
-#### trigger
-**Type:** number or string (percentage)  
-**Default:**: "100%"
+#### triggerElement
+**Type:** selector  
+**Default:** the element
+
+If you need another element to act as the trigger.
+If you don't need a trigger, set this to "null" or "false".
+
+#### triggerHook
+**Type:** number or string (percentage or viewport units) or callback function  
+**Default:** "100%" ("0%" for "pin" property)
+
+0% is top of the viewport and 100% is bottom of the viewport.
 
 #### ease
-**Type:** function or string  
+**Type:** string or callback function  
 **Default:** "linear"
 
 #### axis
