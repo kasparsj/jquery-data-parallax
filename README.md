@@ -113,15 +113,19 @@ as well as (overridden) for each individually:
 
 ### Available options:
 
+All options are **optional**.
+
 #### offset
 **Type:** number  
 **Default:** 0
 
+If you need to start the scene exact pixels from document or "triggerElement" beginning.
+
 #### duration
 **Type:** number or string (percentage or viewport units) or callback function  
-**Default:** element top + height - start
+**Default:** as long as it's needed to scroll past the element
 
-Percentage is calculated against element dimensions rather than viewport: "50%" == 0.5 * $(el).outerWidth(true).  
+Percentages are calculated against element dimensions rather than viewport: "50%" == 0.5 * $(el).outerWidth(true).  
 For viewport relative values, use viewport units: vh or vw: "100vh" == $(window).height().  
 Setting duration to "0" will run it till the end of document.
 
@@ -129,7 +133,8 @@ Setting duration to "0" will run it till the end of document.
 **Type:** selector  
 **Default:** the element
 
-Optional. If you need another element to act as the trigger.
+If you need another element to act as the trigger.
+If you don't need a trigger, set this to "null" or "false".
 
 #### triggerHook
 **Type:** number or string (percentage)  
@@ -139,7 +144,7 @@ Optional. If you need another element to act as the trigger.
 Sometimes you may need to use negative values e.g. "-300%"
 
 #### ease
-**Type:** function or string  
+**Type:** string or callback function  
 **Default:** "linear"
 
 #### axis
