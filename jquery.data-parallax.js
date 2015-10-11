@@ -55,7 +55,7 @@
             dataOptions = this.data("parallax"),
             jsOptions = this.data("parallax-js");
         typeof dataOptions != "undefined" || (dataOptions = {});
-        typeof dataOptions == "object" || console.error("Unable to parse data-parallax attribute");
+        typeof dataOptions == "object" || console.error("Unable to parse data-parallax attribute "+getSelector(this));
         typeof jsOptions != "undefined" || (jsOptions = {});
         typeof jsOptions == "object" || console.error("Unrecognized options passed to $.fn.parallax");
         if (!Array.isArray(dataOptions)) {
@@ -93,7 +93,8 @@
                     offset: options.offset
                 },
                 animation = {},
-                transformOptions = {};
+                transformOptions = {},
+                bgPositionOptions = {};
             if (typeof options.x != "undefined") {
                 transformOptions.x = mergeOptions(options.x, globalOptions);
             }
@@ -123,6 +124,32 @@
                 animation.transform = new TransformContainer($this, transformOptions);
             }
 
+            if (typeof options.backgroundPositionX != "undefined") {
+                bgPositionOptions.x = mergeOptions(options.backgroundPositionX, globalOptions);
+            }
+            if (typeof options.backgroundPositionY != "undefined") {
+                bgPositionOptions.y = mergeOptions(options.backgroundPositionY, globalOptions);
+            }
+            if (bgPositionOptions.x || bgPositionOptions.y) {
+                animation.bgPosition = new XYContainer($this, bgPositionOptions, 'backgroundPosition');
+            }
+
+            if (typeof options.top != "undefined") {
+                var topOptions = mergeOptions(options.top, globalOptions);
+                animation.top = new StyleScene($this, topOptions, 'top');
+            }
+            if (typeof options.left != "undefined") {
+                var leftOptions = mergeOptions(options.left, globalOptions);
+                animation.left = new StyleScene($this, leftOptions, 'left');
+            }
+            if (typeof options.width != "undefined") {
+                var widthOptions = mergeOptions(options.width, globalOptions);
+                animation.width = new StyleScene($this, widthOptions, 'width');
+            }
+            if (typeof options.height != "undefined") {
+                var heightOptions = mergeOptions(options.height, globalOptions);
+                animation.height = new StyleScene($this, heightOptions, 'height');
+            }
             if (typeof options.opacity != "undefined") {
                 var opacityOptions = mergeOptions(options.opacity, globalOptions);
                 animation.opacity = new StyleScene($this, opacityOptions, 'opacity', 1);
@@ -189,20 +216,10 @@
         typeof window.getComputedStyle != "function" || (style = getComputedStyle(this));
         for (var i=0, len=animations.length; i<len; i++) {
             animation = animations[i];
-            if (animation.transform) {
-                animation.transform.update(style);
-            }
-            if (animation.color && animation.color.needsUpdate()) {
-                animation.color.update(style);
-            }
-            if (animation.bgColor && animation.bgColor.needsUpdate()) {
-                animation.bgColor.update(style);
-            }
-            if (animation.opacity && animation.opacity.needsUpdate()) {
-                animation.opacity.update(style);
-            }
-            if (animation.pin && animation.pin.needsUpdate()) {
-                animation.pin.update(style);
+            for (var name in animation) {
+                if (animation[name].needsUpdate()) {
+                    animation[name].update(style);
+                }
             }
         }
     }
@@ -286,7 +303,28 @@
     function interpolate(from, to, progress) {
         return (to - from) * progress + from;
     }
-
+    
+    function inherit(parentProto, childProto) {
+        return $.extend(Object.create(parentProto), childProto || {});
+    }
+    
+    function getSelector($el) {
+        var selector = "",
+            id = $el.attr("id"),
+            classNames = $el.attr("class");
+        if (id) {
+            selector += "#"+ id;
+        }
+        else if (classNames) {
+            selector += "." + $.trim(classNames).replace(/\s/gi, ".");
+        }
+        return selector;
+    }
+    
+    function parseUnit(value) {
+        return value.replace(/^-?\d+(\.\d*)?(\D+)$/, "$2");
+    }
+    
     function Scene($el, options) {
         this.$el = $el;
         this.from = options.from;
@@ -360,11 +398,7 @@
         _needsUpdate: function() {
             return this.prevState === Scene.STATE_DURING || 
                 this.state === Scene.STATE_DURING ||
-                this.__needsInit();
-        },
-        __needsInit: function() {
-            return typeof this.prevState === "undefined" &&
-                (this.state === Scene.STATE_AFTER || typeof this.from != "undefined");
+                (typeof this.prevState === "undefined" && this.state === Scene.STATE_AFTER);
         },
         updateStart: function() {
             this.start = Math.max(this.getOffset() - this.triggerHook, 0);
@@ -420,12 +454,23 @@
     };
 
     function ScalarScene($el, options, maxValue) {
-        options.from = convertOption(options.from, maxValue);
-        options.to = convertOption(options.to, maxValue);
+        if (typeof maxValue != "undefined") {
+            options.from = convertOption(options.from, maxValue);
+            options.to = convertOption(options.to, maxValue);
+        }
         Scene.call(this, $el, options);
     }
-    ScalarScene.prototype = $.extend(Object.create(Scene.prototype), {
+    ScalarScene.prototype = inherit(Scene.prototype, {
         _getNewValue: function() {
+            if (typeof(this.from) != typeof(this.to)) {
+                console.error("Parallax from and to values have different types " + this.from + " " + this.to);
+            }
+            if (typeof this.to === "string") {
+                var from = parseFloat(this.from),
+                    to = parseFloat(this.to),
+                    suffix = parseUnit(this.to);
+                return interpolate(from, to, this.getProgress()) + suffix;
+            }
             return interpolate(this.from, this.to, this.getProgress());
         }
     });
@@ -434,7 +479,7 @@
         this.styleName = styleName;
         ScalarScene.call(this, $el, options, maxValue);
     }
-    StyleScene.prototype = $.extend(Object.create(ScalarScene.prototype), {
+    StyleScene.prototype = inherit(ScalarScene.prototype, {
         _getOldValue: function(style) {
             return parseFloat(style[this.styleName]);
         },
@@ -446,7 +491,7 @@
     function ColorScene($el, options, styleName, maxValue) {
         StyleScene.call(this, $el, options, styleName, maxValue);
     }
-    ColorScene.prototype = $.extend(Object.create(StyleScene.prototype), {
+    ColorScene.prototype = inherit(StyleScene.prototype, {
         _getOldValue: function(style) {
             return style[this.styleName];
         },
@@ -463,7 +508,7 @@
         typeof options.triggerHook != "undefined" || (options.triggerHook = 0);
         Scene.call(this, $el, options);
     }
-    PinScene.prototype = $.extend(Object.create(Scene.prototype), {
+    PinScene.prototype = inherit(Scene.prototype, {
         _needsUpdate: function() {
             return (typeof this.prevState != "undefined" || this.state == Scene.STATE_DURING) && 
                 this.prevState != this.state;
@@ -507,46 +552,82 @@
         }
     });
     
-    function TransformScene($el, options, propName, maxValue) {
+    function VOScene($el, options, propName, maxValue) {
         this.propName = propName;
         ScalarScene.call(this, $el, options, maxValue);
     }
-    TransformScene.prototype = $.extend(Object.create(ScalarScene.prototype), {
-        _getOldValue: function(transform) {
-            return transform.get(this.propName);
+    VOScene.prototype = inherit(ScalarScene.prototype, {
+        _getOldValue: function(vo) {
+            return vo.get(this.propName);
         },
-        _setValue: function(newValue, transform) {
-            transform.set(this.propName, newValue);
+        _setValue: function(newValue, vo) {
+            vo.set(this.propName, newValue);
+        }
+    });
+    
+    function SceneContainer($el, options) {
+        this.$el = $el;
+    }
+    SceneContainer.prototype = {
+        needsUpdate: function() {
+            return true;
+        }
+    };
+    
+    function XYContainer($el, options, styleName) {
+        SceneContainer.call(this, $el, options);
+        this.styleName = styleName;
+        if (options.x) {
+            this.x = new VOScene($el, options.x, 'x');
+        }
+        if (options.y) {
+            this.y = new VOScene($el, options.y, 'y');
+        }
+    }
+    XYContainer.prototype = inherit(SceneContainer.prototype, {
+        update: function(style) {
+            var xy = XY.fromString(style[this.styleName]);
+            if (this.x && this.x.needsUpdate()) {
+                this.x.update(xy);
+            }
+            if (this.y && this.y.needsUpdate()) {
+                this.y.update(xy);
+            }
+            if (xy.isChanged()) {
+                var element = this.$el[0],
+                    newValue = xy.toString();
+                element.style[this.styleName] = newValue;
+            }
         }
     });
 
     function TransformContainer($el, options) {
-        this.$el = $el;
+        SceneContainer.call(this, $el, options);
         if (options.x) {
-            this.x = new TransformScene($el, options.x, 'translateX', windowHeight);
+            this.x = new VOScene($el, options.x, 'translateX', windowHeight);
         }
         if (options.y) {
-            this.y = new TransformScene($el, options.y, 'translateY', windowHeight);
+            this.y = new VOScene($el, options.y, 'translateY', windowHeight);
         }
         if (options.z) {
-            this.z = new TransformScene($el, options.z, 'translateZ', windowHeight);
+            this.z = new VOScene($el, options.z, 'translateZ', windowHeight);
         }
         if (options.scale) {
-            this.scale = new TransformScene($el, options.scale, 'scale', 1);
+            this.scale = new VOScene($el, options.scale, 'scale', 1);
         }
         else {
             if (options.scaleX) {
-                this.scaleX = new TransformScene($el, options.scaleX, 'scaleX', 1);
+                this.scaleX = new VOScene($el, options.scaleX, 'scaleX', 1);
             }
             if (options.scaleY) {
-                this.scaleY = new TransformScene($el, options.scaleY, 'scaleY', 1);
+                this.scaleY = new VOScene($el, options.scaleY, 'scaleY', 1);
             }
         }
         if (options.rotate) {
-            this.rotate = new TransformScene($el, options.rotate, 'rotate', 360);
+            this.rotate = new VOScene($el, options.rotate, 'rotate', 360);
         }
     }
-    TransformContainer.prototype = {
+    TransformContainer.prototype = inherit(SceneContainer.prototype, {
         update: function(style) {
             var matrix = TransformMatrix.fromStyle(style),
                 transform = Transform.fromMatrix(matrix);
@@ -581,7 +662,7 @@
                 element.style.transform = newValue;
             }
         }
-    };
+    });
     
     function RGBColor(r, g, b, a) {
         this.r = r || 0;
@@ -708,6 +789,55 @@
             return "hsv("+this.h+","+this.s+","+this.v+")";
         }
     };
+    
+    function VO() {
+        
+    }
+    VO.prototype = {
+        get: function(propName) {
+            return this[propName];
+        },
+        set: function(propName, value) {
+            this[propName] = value;
+            this._changed = true;
+        },
+        isChanged: function() {
+            return this._changed === true;
+        }
+    };
+    
+    function XY() {
+        this.x = this.y = 0;
+        this.xUnit = this.yUnit = "px";
+    }
+    XY.fromArray = function(array, result) {
+        result || (result = new XY());
+        var a = array[0],
+            b = array[1];
+        if (typeof a === "string") {
+            result.x = parseFloat(a);
+            result.xUnit = parseUnit(a);
+        }
+        else {
+            result.x = a;
+        }
+        if (typeof b === "string") {
+            result.y = parseFloat(b);
+            result.yUnit = parseUnit(b);
+        }
+        else {
+            result.y = b;
+        }
+        return result;
+    };
+    XY.fromString = function(string, result) {
+        return XY.fromArray(string.split(" "), result);
+    };
+    XY.prototype = inherit(VO.prototype, {
+        toString: function() {
+            return this.x.toFixed(2) + this.xUnit + " " + this.y.toFixed(2) + this.yUnit;
+        }
+    });
 
     function Transform() {
         this.translateX = this.translateY = this.translateZ = 0;
@@ -728,7 +858,7 @@
         result.rotate = Math.round(Math.atan2(b, a) * (180/Math.PI));
         return result;
     };
-    Transform.prototype = {
+    Transform.prototype = inherit(VO.prototype, {
         get: function(propName) {
             if (propName === "scale") {
                 return this.scaleX;
@@ -745,9 +875,6 @@
             }
             this._changed = true;
         },
-        isChanged: function() {
-            return this._changed === true;
-        },
         toString: function() {
             var string = 'translate3d('+this.translateX+'px, '+this.translateY+'px, '+this.translateZ+'px)';
             if (this.scaleX != 1 || this.scaleY != 1) {
@@ -758,7 +885,7 @@
             }
             return string;
         }
-    };
+    });
 
     function TransformMatrix() {
         this.matrix = [

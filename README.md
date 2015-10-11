@@ -96,6 +96,23 @@ Hex or rgb() color string.
 #### opacity
 **Type:** number (0 - 1)
 
+#### top
+**Type:** number or string (percentage or viewport units)
+
+#### left
+**Type:** number or string (percentage or viewport units)
+
+#### width
+**Type:** number or string (percentage or viewport units)
+
+#### height
+**Type:** number or string (percentage or viewport units)
+
+#### backgroundPositionX
+**Type:** number or string (percentage or viewport units)
+
+#### backgroundPositionY
+**Type:** number or string (percentage or viewport units)
 
 ### Options
 
