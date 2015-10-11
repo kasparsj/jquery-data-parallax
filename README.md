@@ -127,7 +127,7 @@ Setting duration to "0" will run it till the end of document.
 
 #### trigger
 **Type:** number or string (percentage)  
-**Default:**: "100%"
+**Default:** "100%" ("0%" for "pin" property)
 
 #### ease
 **Type:** function or string  
