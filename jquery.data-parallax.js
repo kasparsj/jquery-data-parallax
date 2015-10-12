@@ -505,11 +505,17 @@
     });
 
     function PinScene($el, options) {
-        options.to = convertToElement(options.to) || $el[0];
+        options.to = convertToElement(options.to);
+        isElement(options.to) || (options.to = $el[0]);
         typeof options.triggerHook != "undefined" || (options.triggerHook = 0);
         Scene.call(this, $el, options);
     }
     PinScene.prototype = inherit(Scene.prototype, {
+        updateStart: function() {
+            if (this.state != Scene.STATE_DURING) {
+                Scene.prototype.updateStart.call(this);
+            }
+        },
         _needsUpdate: function() {
             return (typeof this.prevState != "undefined" || this.state == Scene.STATE_DURING) && 
                 this.prevState != this.state;
