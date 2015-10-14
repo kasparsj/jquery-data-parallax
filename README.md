@@ -60,6 +60,11 @@ Using the object syntax you can explicitly pass in a **from** value (optional), 
 
 Make an elements' position fixed during the scene.
 
+#### class
+**Type** string
+
+Adds one or more classes to the element during the scene.
+
 #### x
 **Type:** number
 

@@ -181,6 +181,10 @@
                 var pinOptions = mergeOptions(options.pin, globalOptions);
                 animation.pin = new PinScene($this, pinOptions);
             }
+            if (typeof options.class != "undefined") {
+                var classOptions = mergeOptions(options.class, globalOptions);
+                animation.class = new ClassScene($this, classOptions);
+            }
             animations.push(animation);
         }
         return animations;
@@ -472,6 +476,8 @@
             this._setFrom(this._getOldValue(style));
             this._setValue(this._getNewValue(), style);
         },
+        _getOldValue: function() {},
+        _getNewValue: function() {},
         _setFrom: function(defaultValue) {
             typeof this.from != "undefined" || (this.from = defaultValue);
         }
@@ -529,11 +535,31 @@
         }
     });
 
+    function StateScene($el, options) {
+        typeof options.triggerHook != "undefined" || (options.triggerHook = 0);
+        Scene.call(this, $el, options);
+    }
+    StateScene.prototype = inherit(Scene.prototype, {
+        _needsUpdate: function() {
+            return (typeof this.prevState != "undefined" || this.state == Scene.STATE_DURING) &&
+                this.prevState != this.state;
+        }
+    });
+
+    function ClassScene($el, options) {
+        StateScene.call(this, $el, options);
+    }
+    ClassScene.prototype = inherit(Scene.prototype, {
+        _setValue: function() {
+            this.$el[this.state == Scene.STATE_DURING ? 'addClass' : 'removeClass'](this.to);
+        }
+    });
+
     function PinScene($el, options) {
         options.to = convertToElement(options.to);
         isElement(options.to) || (options.to = $el[0]);
         typeof options.triggerHook != "undefined" || (options.triggerHook = 0);
-        Scene.call(this, $el, options);
+        StateScene.call(this, $el, options);
         PinScene.scenes.push(this);
     }
     PinScene.scenes = [];
@@ -545,15 +571,11 @@
             }
         }
     };
-    PinScene.prototype = inherit(Scene.prototype, {
+    PinScene.prototype = inherit(StateScene.prototype, {
         updateStart: function() {
             if (this.state != Scene.STATE_DURING) {
                 Scene.prototype.updateStart.call(this);
             }
-        },
-        _needsUpdate: function() {
-            return (typeof this.prevState != "undefined" || this.state == Scene.STATE_DURING) && 
-                this.prevState != this.state;
         },
         _getOldValue: function(style) {
             var toStyle = getComputedStyle(this.to);
