@@ -148,7 +148,7 @@ All options are **optional**.
 **Type:** number or string (percentage or viewport units) or callback function  
 **Default:** 0
 
-If you need to start the scene after document's beginning or "triggerElement"'s beginning.
+If you need to start the scene on an absolute offset or after/before "triggerElement"'s offset.
 
 #### duration
 **Type:** number or string (percentage or viewport units) or callback function  
@@ -162,8 +162,9 @@ Setting duration to "0" will run it till the end of document.
 **Type:** selector  
 **Default:** the element
 
-If you need another element to act as the trigger.
-If you don't need a trigger, set this to "null" or "false".
+Use this if you need another element to act as the trigger.
+It's not recommended to set this to "null" or "false", because working with absolute offsets can become difficult 
+when you need to change things. 
 
 #### triggerHook
 **Type:** number or string (percentage or viewport units) or callback function  
