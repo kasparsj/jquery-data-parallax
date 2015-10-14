@@ -4,7 +4,7 @@
     var $elements = null,
         elementsArr,
         animationsArr,
-        scrollTop,
+        scroll,
         windowHeight, windowWidth,
         documentWidth, documentHeight,
         scrollTicking = false,
@@ -30,19 +30,20 @@
                 if (!isTouchDevice) {
                     this.data("parallax-js", method);
                     var firstCall = ($elements === null);
-                    animationsArr = [];
                     if (firstCall) {
                         updateDimensions();
                     }
-                    this.each(updateAnimationsArray);
                     if (firstCall) {
                         $elements = this;
                         window.onresize = onResize;
-                        window.onscroll = onScroll
+                        window.onscroll = onScroll;
+                        elementsArr = [];
+                        animationsArr = [];
                     }
                     else {
                         $elements.add(this);
                     }
+                    updateAnimationsArray.call(this, elementsArr.length);
                     elementsArr = $elements.toArray();
                     onScroll();
                 }
@@ -78,8 +79,22 @@
         }
         return optionsArr;
     }
+    
+    function rebuildAnimationsArray() {
+        animationsArr = [];
+        PinScene.scenes = [];
+        updateAnimationsArray.call($elements);
+    }
 
-    function updateAnimationsArray(idx) {
+    function updateAnimationsArray(offset) {
+        typeof offset === "number" || (offset = 0);
+        this.each(function(i) {
+            var idx = offset+i;
+            animationsArr[idx] = createAnimations.call(this);
+        });
+    }
+
+    function createAnimations() {
         var $this = $(this),
             animations = [],
             optionsArr = parseOptions.call($this);
@@ -136,11 +151,11 @@
 
             if (typeof options.top != "undefined") {
                 var topOptions = mergeOptions(options.top, globalOptions);
-                animation.top = new StyleScene($this, topOptions, 'top');
+                animation.top = new StyleScene($this, topOptions, 'top', $this.offsetParent().height(), "px");
             }
             if (typeof options.left != "undefined") {
                 var leftOptions = mergeOptions(options.left, globalOptions);
-                animation.left = new StyleScene($this, leftOptions, 'left');
+                animation.left = new StyleScene($this, leftOptions, 'left', $this.offsetParent().width(), "px");
             }
             if (typeof options.width != "undefined") {
                 var widthOptions = mergeOptions(options.width, globalOptions);
@@ -168,14 +183,14 @@
             }
             animations.push(animation);
         }
-        animationsArr[idx] = animations;
+        return animations;
     }
 
     function onResize() {
         if (!resizeTicking) {
             window.requestAnimationFrame(function() {
                 updateDimensions();
-                $elements.each(updateAnimationsArray);
+                rebuildAnimationsArray();
             });
             resizeTicking = true;
         }
@@ -202,11 +217,18 @@
     }
 
     function animateElements() {
-        scrollTop = window.scrollY;
+        scroll = getScroll();
         for (var i= 0, len=elementsArr.length; i<len; i++) {
             animateElement.call(elementsArr[i], i);
         }
         scrollTicking = false;
+    }
+    
+    function getScroll() {
+        return {
+            left: window.pageXOffset || document.documentElement.scrollLeft,
+            top: window.pageYOffset || document.documentElement.scrollTop
+        };
     }
 
     function animateElement(idx) {
@@ -235,7 +257,6 @@
         var offsetLeft = elem.offsetLeft,
             offsetTop = elem.offsetTop,
             lastElem = elem;
-
         while (elem = elem.offsetParent) {
             if (elem === document.body) { //from my observation, document.body always has scrollLeft/scrollTop == 0
                 break;
@@ -244,9 +265,9 @@
             offsetTop += elem.offsetTop;
             lastElem = elem;
         }
-        if (lastElem && lastElem.style.position === 'fixed') { //slow - http://jsperf.com/offset-vs-getboundingclientrect/6
-            offsetLeft += window.pageXOffset || document.documentElement.scrollLeft;
-            offsetTop += window.pageYOffset || document.documentElement.scrollTop;
+        if (lastElem.style.position === 'fixed') { //slow - http://jsperf.com/offset-vs-getboundingclientrect/6
+            offsetLeft += scroll.left;
+            offsetTop += scroll.top;
         }
         return {
             left: offsetLeft,
@@ -254,8 +275,8 @@
         };
     }
     
-    function convertToOffset(value, axis) {
-        return getOffset(value)[axis === Scene.AXIS_X ? 'left' : 'top'];
+    function convertToOffset(elem, axis) {
+        return getOffset(elem)[axis === Scene.AXIS_X ? 'left' : 'top'];
     }
 
     function convertToElement(value) {
@@ -364,7 +385,7 @@
             if (typeof duration === "undefined") {
                 var scene = this;
                 this.duration = function() {
-                    var durationPx = (convertToOffset(scene.$el[0], scene.axis) + scene.$el.outerHeight()) - scene.start;
+                    var durationPx = (convertToOffset(scene.$el[0], scene.axis) + scene.$el.outerHeight(true)) - scene.start;
                     validateDurationPx(durationPx);
                     return durationPx;
                 };
@@ -413,10 +434,10 @@
         },
         updateState: function() {
             this.prevState = this.state;
-            if (scrollTop < this.start) {
+            if (scroll.top < this.start) {
                 this.state = Scene.STATE_BEFORE;
             }
-            else if (scrollTop <= (this.start + this.durationPx)) {
+            else if (scroll.top <= (this.start + this.durationPx)) {
                 this.state = Scene.STATE_DURING;
             }
             else {
@@ -426,7 +447,10 @@
         getOffset: function() {
             var offset = this.offset;
             if (isElement(this.triggerElement)) {
-                offset += convertToOffset(this.triggerElement, this.axis);
+                var pinScene = PinScene.findByElement(this.triggerElement);
+                offset += (pinScene && pinScene.state === Scene.STATE_DURING ? 
+                    pinScene.start : 
+                    convertToOffset(this.triggerElement, this.axis));
             }
             return offset;
         },
@@ -435,7 +459,7 @@
                 return 0;
             }
             else if (this.state === Scene.STATE_DURING) {
-                var posPx = scrollTop - this.start,
+                var posPx = scroll.top - this.start,
                     percent = posPx / this.durationPx,
                     progress = this.ease.call(this, percent);
                 return progress;
@@ -453,31 +477,33 @@
         }
     };
 
-    function ScalarScene($el, options, maxValue) {
+    function ScalarScene($el, options, maxValue, defaultUnit) {
         if (typeof maxValue != "undefined") {
             options.from = convertOption(options.from, maxValue);
             options.to = convertOption(options.to, maxValue);
         }
         Scene.call(this, $el, options);
+        this.unit = typeof this.to === "string" ? parseUnit(this.to) : defaultUnit;
     }
     ScalarScene.prototype = inherit(Scene.prototype, {
         _getNewValue: function() {
+            // todo: think about this once more ("90" != 90)
             if (typeof(this.from) != typeof(this.to)) {
                 console.error("Parallax from and to values have different types " + this.from + "("+typeof(this.from)+") " + this.to + "("+typeof(this.to)+")");
             }
             if (typeof this.to === "string") {
                 var from = parseFloat(this.from),
-                    to = parseFloat(this.to),
-                    suffix = parseUnit(this.to);
-                return interpolate(from, to, this.getProgress()) + suffix;
+                    to = parseFloat(this.to);
+                return interpolate(from, to, this.getProgress()) + this.unit;
             }
-            return interpolate(this.from, this.to, this.getProgress());
+            var suffix = (typeof this.unit === "undefined" ? 0 : this.unit)
+            return interpolate(this.from, this.to, this.getProgress()) + suffix;
         }
     });
     
-    function StyleScene($el, options, styleName, maxValue) {
+    function StyleScene($el, options, styleName, maxValue, defaultUnit) {
         this.styleName = styleName;
-        ScalarScene.call(this, $el, options, maxValue);
+        ScalarScene.call(this, $el, options, maxValue, defaultUnit);
     }
     StyleScene.prototype = inherit(ScalarScene.prototype, {
         _getOldValue: function(style) {
@@ -504,11 +530,27 @@
     });
 
     function PinScene($el, options) {
-        options.to = convertToElement(options.to) || $el[0];
+        options.to = convertToElement(options.to);
+        isElement(options.to) || (options.to = $el[0]);
         typeof options.triggerHook != "undefined" || (options.triggerHook = 0);
         Scene.call(this, $el, options);
+        PinScene.scenes.push(this);
     }
+    PinScene.scenes = [];
+    PinScene.findByElement = function(elem) {
+        var scenes = PinScene.scenes;
+        for (var i=0, len=scenes.length; i<len; i++) {
+            if (scenes[i].$el[0] === elem) {
+                return scenes[i];
+            }
+        }
+    };
     PinScene.prototype = inherit(Scene.prototype, {
+        updateStart: function() {
+            if (this.state != Scene.STATE_DURING) {
+                Scene.prototype.updateStart.call(this);
+            }
+        },
         _needsUpdate: function() {
             return (typeof this.prevState != "undefined" || this.state == Scene.STATE_DURING) && 
                 this.prevState != this.state;
@@ -518,7 +560,9 @@
             return {
                 position: toStyle.position,
                 top: toStyle.top,
-                left: toStyle.left
+                left: toStyle.left,
+                marginLeft: "",
+                marginTop: ""
             };
         },
         _getNewValue: function() {
@@ -526,15 +570,17 @@
                 return {
                     position: 'fixed',
                     top: this.from.pinTop + 'px',
-                    left: this.from.pinLeft + 'px'
+                    left: this.from.pinLeft + 'px',
+                    marginLeft: 0,
+                    marginTop: 0
                 };
             }
             return this.from;
         },
         _setValue: function(newValue) {
-            this.to.style.position = newValue.position;
-            this.to.style.top = newValue.top;
-            this.to.style.left = newValue.left;
+            for (var styleName in newValue) {
+                this.to.style[styleName] = newValue[styleName];                
+            }
         },
         _setFrom: function(defaultValue) {
             if (typeof this.from === "undefined") {
@@ -698,7 +744,7 @@
                 parseInt(string.substr(5,2),16)
             ], result);
         }
-        return RGBColor.fromArray(string.replace(/^rgb(a)?\((.*)\)$/, '$2').split(/, /), result);
+        return RGBColor.fromArray(string.replace(/^rgb(a)?\((.*)\)$/, '$2').split(","), result);
     };
     RGBColor.fromHSV = function(hsv, result) {
         result || (result = new RGBColor());
