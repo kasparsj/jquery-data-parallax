@@ -41,7 +41,7 @@
                         animationsArr = [];
                     }
                     else {
-                        $elements.add(this);
+                        $elements = $elements.add(this);
                     }
                     updateAnimationsArray.call(this, elementsArr.length);
                     elementsArr = $elements.toArray();
