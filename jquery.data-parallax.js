@@ -672,13 +672,13 @@
     function TransformContainer($el, options) {
         SceneContainer.call(this, $el, options);
         if (options.x) {
-            this.x = new VOScene($el, options.x, 'translateX', windowHeight);
+            this.x = new VOScene($el, options.x, 'translateX', $el.outerWidth(true));
         }
         if (options.y) {
-            this.y = new VOScene($el, options.y, 'translateY', windowHeight);
+            this.y = new VOScene($el, options.y, 'translateY', $el.outerHeight(true));
         }
         if (options.z) {
-            this.z = new VOScene($el, options.z, 'translateZ', windowHeight);
+            this.z = new VOScene($el, options.z, 'translateZ');
         }
         if (options.scale) {
             this.scale = new VOScene($el, options.scale, 'scale', 1);
