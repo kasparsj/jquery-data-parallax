@@ -1,6 +1,6 @@
 {
   "name": "jquery-data-parallax",
-  "version": "0.1.16",
+  "version": "0.1.19",
   "homepage": "https://github.com/kasparsj/jquery-data-parallax",
   "authors": [
     "Kaspars <kasparsj@gmail.com>"
@@ -23,14 +23,14 @@
     "test",
     "tests"
   ],
-  "_release": "0.1.16",
+  "_release": "0.1.19",
   "_resolution": {
     "type": "version",
-    "tag": "0.1.16",
-    "commit": "0af8057ddd9daccd0e61d418a1cd8b89550d361c"
+    "tag": "0.1.19",
+    "commit": "c9f9c641e01f92adb9aca8d22a879f7b825641f2"
   },
   "_source": "git://github.com/kasparsj/jquery-data-parallax.git",
-  "_target": "~0.1.16",
+  "_target": "~0.1.19",
   "_originalSource": "jquery-data-parallax",
   "_direct": true
 }

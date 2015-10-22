@@ -60,26 +60,31 @@ Using the object syntax you can explicitly pass in a **from** value (optional), 
 
 Make an elements' position fixed during the scene.
 
-#### x
-**Type:** number
+#### class
+**Type** string
 
-translateX
+Adds one or more classes to the element during the scene.
+
+#### x
+**Type:** number or string (percentage or viewport units)
+
+translateX. Percentages in this case are relative to the duration.
 
 #### y
-**Type:** number
+**Type:** number or string (percentage or viewport units)
 
-translateY
+translateY. Percentages in this case are relative to the duration.
 
 #### z
-**Type:** number
+**Type:** number or string (percentage or viewport units)
 
-translateZ
+translateZ. Percentages in this case are relative to the duration.
 
 #### scale or scaleX and scaleY
-**Type:** number
+**Type:** number or string (percentage)
 
 #### rotate
-**Type:** number
+**Type:** number or string (percentage)
 
 Rotation in degrees.
 

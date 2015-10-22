@@ -9,7 +9,9 @@
         documentWidth, documentHeight,
         scrollTicking = false,
         resizeTicking = false,
-        isTouchDevice = window.Modernizr && typeof(Modernizr.touchevents) != 'undefined' ? Modernizr.touchevents : testTouchEvents();
+        isTouchDevice = window.Modernizr && typeof(Modernizr.touchevents) != 'undefined' ? Modernizr.touchevents : testTouchEvents(),
+        PERC_RE = /%/g,
+        VU_RE = /v(w|h)/g;
 
     function testTouchEvents() {
         return 'ontouchstart' in window // works on most browsers
@@ -41,7 +43,7 @@
                         animationsArr = [];
                     }
                     else {
-                        $elements.add(this);
+                        $elements = $elements.add(this);
                     }
                     updateAnimationsArray.call(this, elementsArr.length);
                     elementsArr = $elements.toArray();
@@ -181,6 +183,10 @@
                 var pinOptions = mergeOptions(options.pin, globalOptions);
                 animation.pin = new PinScene($this, pinOptions);
             }
+            if (typeof options.class != "undefined") {
+                var classOptions = mergeOptions(options.class, globalOptions);
+                animation.class = new ClassScene($this, classOptions);
+            }
             animations.push(animation);
         }
         return animations;
@@ -294,14 +300,13 @@
 
     function convertOption(value, maxValue) {
         if (typeof value === "string") {
-            var percValue = parseFloat(value) / 100;
-            if (value.match(/%/g)) {
-                value = percValue * maxValue;
+            if (value.match(PERC_RE)) {
+                value = convertPerc(value, maxValue);
             }
             else {
-                var matches = value.match(/v(w|h)/g);
+                var matches = value.match(VU_RE);
                 if (matches) {
-                    value = percValue * (matches[0] === 'vw' ? windowWidth : windowHeight);
+                    value = convertVU(value, matches[0]);
                 }
             }
         }
@@ -309,6 +314,14 @@
             value = value(maxValue);
         }
         return value;
+    }
+    
+    function convertVU(percent, unit) {
+        return convertPerc(percent, (unit === 'vw' ? windowWidth : windowHeight));
+    }
+
+    function convertPerc(percent, maxValue) {
+        return parseFloat(percent) / 100 * maxValue;
     }
 
     function isElement(obj) {
@@ -472,32 +485,73 @@
             this._setFrom(this._getOldValue(style));
             this._setValue(this._getNewValue(), style);
         },
+        _getOldValue: function() {},
+        _getNewValue: function() {},
         _setFrom: function(defaultValue) {
             typeof this.from != "undefined" || (this.from = defaultValue);
         }
     };
-
+    
     function ScalarScene($el, options, maxValue, defaultUnit) {
+        this.convertPerc = false;
+        this.unit = defaultUnit;
         if (typeof maxValue != "undefined") {
             options.from = convertOption(options.from, maxValue);
             options.to = convertOption(options.to, maxValue);
         }
+        else {
+            if (typeof options.from === "string") {
+                options.from = this._parseString(options.from);
+            }
+            else if (typeof options.from === "function") {
+                options.from = options.from();
+            }
+            if (typeof options.to === "string") {
+                options.to = this._parseString(options.to);
+            }
+            else if (typeof options.to === "function") {
+                options.to = options.to();
+            }
+        }
         Scene.call(this, $el, options);
-        this.unit = typeof this.to === "string" ? parseUnit(this.to) : defaultUnit;
     }
     ScalarScene.prototype = inherit(Scene.prototype, {
+        _parseString: function(value) {
+            if (value.match(PERC_RE)) {
+                this.convertPerc = true;
+            }
+            else {
+                var matches = value.match(VU_RE);
+                if (matches) {
+                    value = convertVU(value, matches[0]);
+                }
+                else {
+                    this.unit = parseUnit(value);
+                }
+            }
+            return value;
+        },
         _getNewValue: function() {
-            // todo: think about this once more ("90" != 90)
-            if (typeof(this.from) != typeof(this.to)) {
-                console.error("Parallax from and to values have different types " + this.from + "("+typeof(this.from)+") " + this.to + "("+typeof(this.to)+")");
+            var from = this.from,
+                to = this.to;
+            if (typeof from === "string") {
+                if (this.convertPerc && from.substr(-1) === "%") {
+                    from = convertOption(from, this.durationPx);
+                }
+                else {
+                    from = parseFloat(from);
+                }
             }
-            if (typeof this.to === "string") {
-                var from = parseFloat(this.from),
-                    to = parseFloat(this.to);
-                return interpolate(from, to, this.getProgress()) + this.unit;
+            if (typeof to === "string") {
+                if (this.convertPerc && to.substr(-1) === "%") {
+                    to = convertOption(to, this.durationPx);
+                }
+                else {
+                    to = parseFloat(to);
+                }
             }
-            var suffix = (typeof this.unit === "undefined" ? 0 : this.unit)
-            return interpolate(this.from, this.to, this.getProgress()) + suffix;
+            var suffix = (typeof this.unit === "undefined" ? 0 : this.unit);
+            return interpolate(from, to, this.getProgress()) + suffix;
         }
     });
     
@@ -529,11 +583,31 @@
         }
     });
 
+    function StateScene($el, options) {
+        typeof options.triggerHook != "undefined" || (options.triggerHook = 0);
+        Scene.call(this, $el, options);
+    }
+    StateScene.prototype = inherit(Scene.prototype, {
+        _needsUpdate: function() {
+            return (typeof this.prevState != "undefined" || this.state == Scene.STATE_DURING) &&
+                this.prevState != this.state;
+        }
+    });
+
+    function ClassScene($el, options) {
+        StateScene.call(this, $el, options);
+    }
+    ClassScene.prototype = inherit(Scene.prototype, {
+        _setValue: function() {
+            this.$el[this.state == Scene.STATE_DURING ? 'addClass' : 'removeClass'](this.to);
+        }
+    });
+
     function PinScene($el, options) {
         options.to = convertToElement(options.to);
         isElement(options.to) || (options.to = $el[0]);
         typeof options.triggerHook != "undefined" || (options.triggerHook = 0);
-        Scene.call(this, $el, options);
+        StateScene.call(this, $el, options);
         PinScene.scenes.push(this);
     }
     PinScene.scenes = [];
@@ -545,15 +619,11 @@
             }
         }
     };
-    PinScene.prototype = inherit(Scene.prototype, {
+    PinScene.prototype = inherit(StateScene.prototype, {
         updateStart: function() {
             if (this.state != Scene.STATE_DURING) {
                 Scene.prototype.updateStart.call(this);
             }
-        },
-        _needsUpdate: function() {
-            return (typeof this.prevState != "undefined" || this.state == Scene.STATE_DURING) && 
-                this.prevState != this.state;
         },
         _getOldValue: function(style) {
             var toStyle = getComputedStyle(this.to);
@@ -650,13 +720,13 @@
     function TransformContainer($el, options) {
         SceneContainer.call(this, $el, options);
         if (options.x) {
-            this.x = new VOScene($el, options.x, 'translateX', windowHeight);
+            this.x = new VOScene($el, options.x, 'translateX');
         }
         if (options.y) {
-            this.y = new VOScene($el, options.y, 'translateY', windowHeight);
+            this.y = new VOScene($el, options.y, 'translateY');
         }
         if (options.z) {
-            this.z = new VOScene($el, options.z, 'translateZ', windowHeight);
+            this.z = new VOScene($el, options.z, 'translateZ');
         }
         if (options.scale) {
             this.scale = new VOScene($el, options.scale, 'scale', 1);
