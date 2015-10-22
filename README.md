@@ -66,25 +66,25 @@ Make an elements' position fixed during the scene.
 Adds one or more classes to the element during the scene.
 
 #### x
-**Type:** number
+**Type:** number or string (percentage or viewport units)
 
-translateX
+translateX. Percentages in this case are relative to the duration.
 
 #### y
-**Type:** number
+**Type:** number or string (percentage or viewport units)
 
-translateY
+translateY. Percentages in this case are relative to the duration.
 
 #### z
-**Type:** number
+**Type:** number or string (percentage or viewport units)
 
-translateZ
+translateZ. Percentages in this case are relative to the duration.
 
 #### scale or scaleX and scaleY
-**Type:** number
+**Type:** number or string (percentage)
 
 #### rotate
-**Type:** number
+**Type:** number or string (percentage)
 
 Rotation in degrees.
 
