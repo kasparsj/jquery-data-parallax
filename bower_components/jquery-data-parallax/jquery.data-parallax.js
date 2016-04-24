@@ -12,6 +12,10 @@
         isTouchDevice = window.Modernizr && typeof(Modernizr.touchevents) != 'undefined' ? Modernizr.touchevents : testTouchEvents(),
         PERC_RE = /%/g,
         VU_RE = /v(w|h)/g;
+    
+    $.parallax = {
+        enableTouchDevices: false
+    };
 
     function testTouchEvents() {
         return 'ontouchstart' in window // works on most browsers
@@ -29,7 +33,7 @@
                 $elements.not(this);
                 break;
             default:
-                if (!isTouchDevice) {
+                if (!isTouchDevice || $.parallax.enableTouchDevices || (method && method.enableTouchDevices)) {
                     this.data("parallax-js", method);
                     var firstCall = ($elements === null);
                     if (firstCall) {
@@ -1038,7 +1042,7 @@
         return TransformMatrix.fromArray(transform.replace(/^matrix(3d)?\((.*)\)$/, '$2').split(/, /), result);
     };
 
-    if (!isTouchDevice) {
+    if (!isTouchDevice || $.parallax.enableTouchDevices) {
         $(function() {
 
             $("[data-parallax]").parallax();

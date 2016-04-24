@@ -4,13 +4,13 @@ requestAnimationFrame polyfill compiled from multiple sources
 ## Availability
 
 ```bash
-bower install requestAnimationFrame.js
+bower install jquery.requestAnimationFrame
 ```
 
 ## Installation
 
 ```html
-<script src="requestAnimationFrame.js"></script>
+<script src="jquery.requestAnimationFrame.js"></script>
 ```
 
 ## Usage

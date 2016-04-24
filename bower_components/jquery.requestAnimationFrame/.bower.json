@@ -25,9 +25,9 @@
   "_resolution": {
     "type": "version",
     "tag": "0.1.0",
-    "commit": "44d11622ea4eff114b704cdb7aa2c8881a0401c1"
+    "commit": "2be763a0dc740bea0208384c0b2494872cda2c62"
   },
-  "_source": "git://github.com/kasparsj/jquery.requestAnimationFrame.git",
+  "_source": "https://github.com/kasparsj/jquery.requestAnimationFrame.git",
   "_target": "*",
   "_originalSource": "jquery.requestAnimationFrame"
 }

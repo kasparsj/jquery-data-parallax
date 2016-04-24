@@ -185,5 +185,23 @@ when you need to change things.
 **Type:** string ("x" or "y")  
 **Default:** "y"
 
+#### enableTouchDevices
+**Type:** boolean  
+**Default:** false
+
+This is per element / selector option. 
+
+### Global options:
+
+#### enableTouchDevices
+**Type:** boolean  
+**Default:** false
+
+By default [data-parallax] is disabled on touch devices. To make it work add after including the js file:
+
+```javascript
+$.parallax.enableTouchDevices = true;
+```
+
 ## Credits
 This plugin was inspired from [Parallax Done Right](https://medium.com/@dhg/parallax-done-right-82ced812e61c) and [Perfecting Parallax Scrolling](https://github.com/Form5/parallax)
