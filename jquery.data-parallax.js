@@ -29,7 +29,7 @@
                 $elements.not(this);
                 break;
             default:
-                if (!isTouchDevice) {
+                if (!isTouchDevice || (method && method.enableTouchDevices)) {
                     this.data("parallax-js", method);
                     var firstCall = ($elements === null);
                     if (firstCall) {
