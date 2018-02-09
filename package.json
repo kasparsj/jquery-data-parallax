@@ -1,0 +1,21 @@
+{
+  "name": "jquery-data-parallax",
+  "description": "Create super fast parallax effects using data attributes.",
+  "version": "0.2.0",
+  "author": "Kaspars Jaudzems",
+  "homepage": "http://kasparsj.github.io/jquery-data-parallax/",
+  "dependencies": {
+    "@bower_components/jquery": "jquery/jquery-dist#>=1.9.0",
+    "@bower_components/jquery.requestAnimationFrame": "kasparsj/jquery.requestAnimationFrame#*"
+  },
+  "engines": {
+    "yarn": ">= 1.0.0"
+  },
+  "scripts": {
+    "postinstall": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules/@bower_components'), 'bower_components', 'junction') } catch (e) { }\""
+  },
+  "licenses": [{
+    "type": "MIT",
+    "url": "http://opensource.org/licenses/MIT"
+  }]
+}
