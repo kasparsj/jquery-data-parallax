@@ -9,12 +9,13 @@ Create super fast parallax effects using data attributes.
 
 ## Examples
 
-[See Examples](http://kasparsj.github.io/jquery-data-parallax/bower_components/jquery-data-parallax/examples/)
+[See Examples](http://kasparsj.github.io/jquery-data-parallax/node_modules/jquery-data-parallax/examples/)
 
 ## Availability
 
 ```bash
-bower install jquery-data-parallax
+yarn add jquery-data-parallax
+yarn install
 ```
 
 ## Installation
