@@ -23,7 +23,7 @@ yarn install
 ```html
 <script src="bower_components/jquery/dist/jquery.min.js"></script>
 <script src="bower_components/jquery.requestAnimationFrame/jquery.requestAnimationFrame.min.js"></script>
-<script src="bower_components/jquery-data-parallax/jquery.data-parallax.min.js"></script>
+<script src="node_modules/jquery-data-parallax/jquery.data-parallax.min.js"></script>
 ```
 
 ## Usage
